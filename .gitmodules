@@ -1,0 +1,3 @@
+[submodule "git-conventions"]
+	path = git-conventions
+	url = https://github.com/reprogrammer/git-conventions.git
