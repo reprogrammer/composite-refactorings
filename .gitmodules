@@ -1,3 +1,6 @@
 [submodule "git-conventions"]
 	path = git-conventions
 	url = https://github.com/reprogrammer/git-conventions.git
+[submodule "eclipse-conventions"]
+	path = eclipse-conventions
+	url = https://github.com/reprogrammer/eclipse-conventions.git
