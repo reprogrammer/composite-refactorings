@@ -26,7 +26,11 @@ public class CreateNewSuperclassQuickAssistProcessor implements IQuickAssistProc
 
 	@Override
 	public boolean hasAssists(IInvocationContext context) throws CoreException {
-		return true;
+		ASTNode coveringNode= context.getCoveringNode();
+		if (coveringNode != null) {
+			return getCreateNewSuperclassProposal(context, coveringNode, false, null);
+		}
+		return false;
 	}
 
 	@Override
@@ -41,8 +45,18 @@ public class CreateNewSuperclassQuickAssistProcessor implements IQuickAssistProc
 	}
 
 	private static boolean getCreateNewSuperclassProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
+		if (!(coveringNode instanceof TypeDeclaration)) {
+			return false;
+		}
+
+		if (proposals == null) {
+			return true;
+		}
+
 		final ICompilationUnit cu= context.getCompilationUnit();
-		ASTNode node= context.getCoveringNode();
+		ASTNode coveringTypeDeclarationASTNode= context.getCoveringNode();
+		AST coveringTypeDeclarationAST= coveringTypeDeclarationASTNode.getAST();
+		ASTNode node= coveringTypeDeclarationASTNode.getParent();
 		AST ast= node.getAST();
 		ASTRewrite rewrite= ASTRewrite.create(ast);
 		String label= "Create new superclass in file";
@@ -52,6 +66,8 @@ public class CreateNewSuperclassQuickAssistProcessor implements IQuickAssistProc
 		newSuperclass.setName(ast.newSimpleName("NewSuperclass"));
 		ListRewrite listRewrite= rewrite.getListRewrite(node, CompilationUnit.TYPES_PROPERTY);
 		listRewrite.insertLast(newSuperclass, null);
+		rewrite.set(newSuperclass, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, coveringTypeDeclarationASTNode.getStructuralProperty(TypeDeclaration.SUPERCLASS_TYPE_PROPERTY), null);
+		rewrite.set(coveringTypeDeclarationASTNode, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, newSuperclass.getName(), null);
 		proposals.add(proposal);
 		return true;
 	}
