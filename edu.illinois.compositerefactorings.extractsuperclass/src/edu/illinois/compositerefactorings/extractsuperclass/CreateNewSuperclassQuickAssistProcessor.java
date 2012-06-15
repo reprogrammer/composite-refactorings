@@ -55,7 +55,6 @@ public class CreateNewSuperclassQuickAssistProcessor implements IQuickAssistProc
 
 		final ICompilationUnit cu= context.getCompilationUnit();
 		ASTNode coveringTypeDeclarationASTNode= context.getCoveringNode();
-		AST coveringTypeDeclarationAST= coveringTypeDeclarationASTNode.getAST();
 		ASTNode node= coveringTypeDeclarationASTNode.getParent();
 		AST ast= node.getAST();
 		ASTRewrite rewrite= ASTRewrite.create(ast);
