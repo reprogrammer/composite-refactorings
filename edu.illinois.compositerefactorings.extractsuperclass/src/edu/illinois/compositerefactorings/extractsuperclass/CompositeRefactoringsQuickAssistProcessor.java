@@ -22,7 +22,7 @@ import org.eclipse.swt.graphics.Image;
 
 
 @SuppressWarnings("restriction")
-public class CreateNewSuperclassQuickAssistProcessor implements IQuickAssistProcessor {
+public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistProcessor {
 
 	@Override
 	public boolean hasAssists(IInvocationContext context) throws CoreException {

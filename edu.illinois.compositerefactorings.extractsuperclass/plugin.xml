@@ -4,9 +4,9 @@
    <extension
          point="org.eclipse.jdt.ui.quickAssistProcessors">
       <quickAssistProcessor
-            class="edu.illinois.compositerefactorings.extractsuperclass.CreateNewSuperclassQuickAssistProcessor"
-            id="edu.illinois.compositerefactorings.extractsuperclass.createNewSuperclassQuickAssistProcessor"
-            name="CreateNewSuperclassQuickAssistProcessor">
+            class="edu.illinois.compositerefactorings.extractsuperclass.CompositeRefactoringsQuickAssistProcessor"
+            id="edu.illinois.compositerefactorings.extractsuperclass.compositeRefactoringsQuickAssistProcessor"
+            name="CompositeRefactoringsQuickAssistProcessor">
       </quickAssistProcessor>
    </extension>
 
