@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="edu.illinois.compositerefactorings"
+      label="edu.illinois.compositerefactorings"
+      version="1.0.0.qualifier"
+      provider-name="University of Illinois">
+
+   <description>
+      %description
+   </description>
+
+   <copyright>
+      %copyright
+   </copyright>
+
+   <license url="license.html">
+      %license
+   </license>
+
+   <plugin
+         id="edu.illinois.compositerefactorings.extractsuperclass"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

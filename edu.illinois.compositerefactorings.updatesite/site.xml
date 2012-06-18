@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/edu.illinois.compositerefactorings_1.0.0.201206181450.jar" id="edu.illinois.compositerefactorings" version="1.0.0.201206181450">
+      <category name="CompositeRefactorings"/>
+   </feature>
+   <category-def name="CompositeRefactorings" label="CompositeRefactorings"/>
+</site>
