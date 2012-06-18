@@ -21,6 +21,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
@@ -73,15 +74,10 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 	private static boolean getCreateNewSuperclassProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
 		TypeDeclaration typeDeclaration= null;
 
-		if (coveringNode instanceof Name) {
-			if (coveringNode.getParent() instanceof TypeDeclaration) {
-				typeDeclaration= (TypeDeclaration)coveringNode.getParent();
-			} else {
-				return false;
-			}
-		}
-		else if (coveringNode instanceof TypeDeclaration) {
+		if (coveringNode instanceof TypeDeclaration) {
 			typeDeclaration= (TypeDeclaration)coveringNode;
+		} else if (coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
 		} else {
 			return false;
 		}
@@ -139,19 +135,13 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		return true;
 	}
 
-
 	private static boolean getMoveTypeToNewFileProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
 		TypeDeclaration typeDeclaration= null;
 
-		if (coveringNode instanceof Name) {
-			if (coveringNode.getParent() instanceof TypeDeclaration) {
-				typeDeclaration= (TypeDeclaration)coveringNode.getParent();
-			} else {
-				return false;
-			}
-		}
-		else if (coveringNode instanceof TypeDeclaration) {
+		if (coveringNode instanceof TypeDeclaration) {
 			typeDeclaration= (TypeDeclaration)coveringNode;
+		} else if (coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
 		} else {
 			return false;
 		}
