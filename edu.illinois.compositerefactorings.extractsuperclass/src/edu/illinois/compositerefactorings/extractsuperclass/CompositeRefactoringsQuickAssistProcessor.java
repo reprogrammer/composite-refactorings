@@ -71,7 +71,18 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 	}
 
 	private static boolean getCreateNewSuperclassProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
-		if (!(coveringNode instanceof TypeDeclaration)) {
+		TypeDeclaration typeDeclaration= null;
+
+		if (coveringNode instanceof Name) {
+			if (coveringNode.getParent() instanceof TypeDeclaration) {
+				typeDeclaration= (TypeDeclaration)coveringNode.getParent();
+			} else {
+				return false;
+			}
+		}
+		else if (coveringNode instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode;
+		} else {
 			return false;
 		}
 
@@ -80,8 +91,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		}
 
 		final ICompilationUnit cu= context.getCompilationUnit();
-		ASTNode coveringTypeDeclarationASTNode= context.getCoveringNode();
-		ASTNode node= coveringTypeDeclarationASTNode.getParent();
+		ASTNode node= typeDeclaration.getParent();
 		AST ast= node.getAST();
 		ASTRewrite rewrite= ASTRewrite.create(ast);
 		String label= "Create new superclass in file";
@@ -91,8 +101,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		newSuperclass.setName(ast.newSimpleName("NewSuperclass"));
 		ListRewrite listRewrite= rewrite.getListRewrite(node, CompilationUnit.TYPES_PROPERTY);
 		listRewrite.insertLast(newSuperclass, null);
-		rewrite.set(newSuperclass, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, coveringTypeDeclarationASTNode.getStructuralProperty(TypeDeclaration.SUPERCLASS_TYPE_PROPERTY), null);
-		rewrite.set(coveringTypeDeclarationASTNode, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, newSuperclass.getName(), null);
+		rewrite.set(newSuperclass, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, typeDeclaration.getStructuralProperty(TypeDeclaration.SUPERCLASS_TYPE_PROPERTY), null);
+		rewrite.set(typeDeclaration, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, newSuperclass.getName(), null);
 		proposals.add(proposal);
 		return true;
 	}
@@ -131,7 +141,6 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 
 
 	private static boolean getMoveTypeToNewFileProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
-
 		TypeDeclaration typeDeclaration= null;
 
 		if (coveringNode instanceof Name) {
