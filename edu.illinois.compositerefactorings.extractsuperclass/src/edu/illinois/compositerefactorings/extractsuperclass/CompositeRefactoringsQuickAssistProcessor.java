@@ -21,6 +21,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -130,7 +131,19 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 
 
 	private static boolean getMoveTypeToNewFileProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
-		if (!(coveringNode instanceof TypeDeclaration)) {
+
+		TypeDeclaration typeDeclaration= null;
+
+		if (coveringNode instanceof Name) {
+			if (coveringNode.getParent() instanceof TypeDeclaration) {
+				typeDeclaration= (TypeDeclaration)coveringNode.getParent();
+			} else {
+				return false;
+			}
+		}
+		else if (coveringNode instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode;
+		} else {
 			return false;
 		}
 
@@ -139,7 +152,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		}
 
 		final ICompilationUnit cu= context.getCompilationUnit();
-		ITypeBinding typeBinding= ((TypeDeclaration)coveringNode).resolveBinding();
+		ITypeBinding typeBinding= typeDeclaration.resolveBinding();
 		IType type= (IType)typeBinding.getJavaElement();
 		final MoveInnerToTopRefactoring moveInnerToTopRefactoring= new MoveInnerToTopRefactoring(type, null);
 
