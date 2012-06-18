@@ -144,7 +144,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		final MoveInnerToTopRefactoring moveInnerToTopRefactoring= new MoveInnerToTopRefactoring(type, null);
 
 		if (moveInnerToTopRefactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-			String label= "Move selected type to new file";
+			String label= String.format("Move type %s to a new file", type.getElementName());
 
 			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
 			int relevance= problemsAtLocation ? 1 : 4;
@@ -153,6 +153,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			if (status.hasFatalError()) {
 				change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
 				((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
+				return false;
 			} else {
 				change= moveInnerToTopRefactoring.createChange(new NullProgressMonitor());
 			}
