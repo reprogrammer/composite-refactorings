@@ -10,27 +10,36 @@ package edu.illinois.compositerefactorings.extractsuperclass;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMember;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ITypeBinding;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Modifier;
-import org.eclipse.jdt.core.dom.Name;
-import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
+import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
+import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.internal.corext.refactoring.structure.MoveInnerToTopRefactoring;
+import org.eclipse.jdt.internal.corext.refactoring.structure.PullUpRefactoringProcessor;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
+import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
+import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
+import org.eclipse.jdt.internal.ui.text.correction.AssistContext;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
@@ -38,9 +47,12 @@ import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.jdt.ui.text.java.correction.ASTRewriteCorrectionProposal;
 import org.eclipse.jdt.ui.text.java.correction.ChangeCorrectionProposal;
 import org.eclipse.jdt.ui.text.java.correction.ICommandAccess;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
+import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.InsertEdit;
 
@@ -93,7 +105,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		ASTNode node= typeDeclaration.getParent();
 		AST ast= node.getAST();
 		ASTRewrite rewrite= ASTRewrite.create(ast);
-		String label= "Create new superclass in file";
+		String label= String.format("Create a new super type for '%s' in '%s'", typeDeclaration.getName(), cu.getElementName());
 		Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
 		ASTRewriteCorrectionProposal proposal= new ASTRewriteCorrectionProposal(label, cu, rewrite, 0, image);
 		TypeDeclaration newSuperclass= ast.newTypeDeclaration();
@@ -106,68 +118,79 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		return true;
 	}
 
+	// See org.eclipse.jdt.ui.actions.PullUpAction.getSelectedMemberFromEditor()
+	private static IMember getSelectedMemberFromEditor(JavaEditor editor) throws JavaModelException {
+		IJavaElement element= SelectionConverter.resolveEnclosingElement(editor, (ITextSelection)editor.getSelectionProvider().getSelection());
+		if (element == null || !(element instanceof IMember))
+			return null;
+		return (IMember)element;
+	}
+
 	private static boolean getMoveToImmediateSuperclassProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals)
 			throws CoreException {
 		if (proposals == null) {
 			return true;
 		}
 
-		BodyDeclaration bodyDeclaration= getSelectedBodyDeclaration(context, coveringNode);
+		IMember member= getSelectedMemberFromEditor((JavaEditor)((AssistContext)context).getEditor());
 
-		if (bodyDeclaration == null) {
-			return false;
-		}
-
-		TypeDeclaration typeDeclaration= null;
-
-		if (bodyDeclaration.getParent() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)bodyDeclaration.getParent();
-		} else {
+		if (member == null) {
 			return false;
 		}
 
 		final ICompilationUnit cu= context.getCompilationUnit();
-		CompilationUnit cuASTNode= (CompilationUnit)bodyDeclaration.getRoot();
-		ASTRewrite rewrite= ASTRewrite.create(typeDeclaration.getAST());
-		String label= "Move to immediate superclass";
-		Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-		ASTRewriteCorrectionProposal proposal= new ASTRewriteCorrectionProposal(label, cu, rewrite, 0, image);
-		ASTNode placeHolderForMethodDeclaration= rewrite.createMoveTarget(bodyDeclaration);
-		SimpleType superTypeASTNode= (SimpleType)typeDeclaration.getStructuralProperty(TypeDeclaration.SUPERCLASS_TYPE_PROPERTY);
-		if (superTypeASTNode == null) {
+		IJavaProject project= cu.getJavaProject();
+
+		IType declaringType= member.getDeclaringType();
+		if (declaringType == null) {
 			return false;
 		}
-		ITypeBinding superTypeBinding= superTypeASTNode.resolveBinding();
-		// See http://wiki.eclipse.org/JDT/FAQ#From_an_IBinding_to_its_declaring_ASTNode
-		ASTNode superTypeDeclarationASTNode= cuASTNode.findDeclaringNode(superTypeBinding);
-		if (superTypeDeclarationASTNode == null) {
-			//FIXME: We should be able to find the super type in some other compilation unit.
-			return false;
+		IType immediateSuperclass= declaringType.newTypeHierarchy(project, new NullProgressMonitor()).getSuperclass(declaringType);
+
+		String projectName= project.getElementName();
+		Map<String, String> refactoringArgumentsMap= new HashMap<String, String>();
+		refactoringArgumentsMap.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(projectName, immediateSuperclass));
+		refactoringArgumentsMap.put("stubs", String.valueOf(false));
+		refactoringArgumentsMap.put("instanceof", String.valueOf(false));
+		refactoringArgumentsMap.put("replace", String.valueOf(false));
+		refactoringArgumentsMap.put("abstract", String.valueOf(0));
+		int numberOfMethodsToRemoveFromSubclasses= 0;
+		if (member instanceof IField) {
+			numberOfMethodsToRemoveFromSubclasses= 0;
+		} else if (member instanceof IMethod) {
+			numberOfMethodsToRemoveFromSubclasses= 1;
 		}
-		ListRewrite superTypeMembersListRewrite= rewrite.getListRewrite(superTypeDeclarationASTNode, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-		superTypeMembersListRewrite.insertFirst(placeHolderForMethodDeclaration, null);
-		rewrite.remove(bodyDeclaration, null);
-		proposals.add(proposal);
-		return true;
-	}
+		refactoringArgumentsMap.put("delete", Integer.toString(numberOfMethodsToRemoveFromSubclasses));
+		refactoringArgumentsMap.put("pull", String.valueOf(1));
+		refactoringArgumentsMap.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_ELEMENT + 1, JavaRefactoringDescriptorUtil.elementToHandle(projectName, member));
+		if (numberOfMethodsToRemoveFromSubclasses > 0) {
+			refactoringArgumentsMap.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_ELEMENT + 2, JavaRefactoringDescriptorUtil.elementToHandle(projectName, member));
+		}
 
-	private static BodyDeclaration getSelectedBodyDeclaration(IInvocationContext context, ASTNode coveringNode) {
-		BodyDeclaration bodyDeclaration= null;
+		JavaRefactoringArguments refactoringArguments= new JavaRefactoringArguments(projectName, refactoringArgumentsMap);
+		PullUpRefactoringProcessor processor= new PullUpRefactoringProcessor(refactoringArguments, new RefactoringStatus());
+		Refactoring refactoring= new ProcessorBasedRefactoring(processor);
 
-		if (context.getCoveredNode() instanceof BodyDeclaration) {
-			bodyDeclaration= (BodyDeclaration)context.getCoveredNode();
-		} else if (coveringNode instanceof BodyDeclaration) {
-			bodyDeclaration= (BodyDeclaration)coveringNode;
-		} else if (coveringNode.getParent() != null) {
-			if (coveringNode.getParent() instanceof BodyDeclaration) {
-				bodyDeclaration= (BodyDeclaration)coveringNode.getParent();
-			} else if (coveringNode.getParent().getParent() != null && coveringNode.getParent().getParent() instanceof BodyDeclaration) {
-				bodyDeclaration= (BodyDeclaration)coveringNode.getParent().getParent();
+		if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
+			String label= String.format("Move '%s' to super type '%s'", member.getElementName(), immediateSuperclass.getElementName());
+
+			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
+			int relevance= problemsAtLocation ? 1 : 4;
+			RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
+			Change change= null;
+			if (status.hasFatalError()) {
+				change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
+				((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
+				return false;
+			} else {
+				change= refactoring.createChange(new NullProgressMonitor());
 			}
-		} else {
-			bodyDeclaration= null;
+			ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
+
+			proposals.add(proposal);
 		}
-		return bodyDeclaration;
+
+		return true;
 	}
 
 	private static boolean getMoveTypeToNewFileProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
@@ -193,7 +216,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		final MoveInnerToTopRefactoring moveInnerToTopRefactoring= new MoveInnerToTopRefactoring(type, null);
 
 		if (moveInnerToTopRefactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-			String label= String.format("Move type %s to a new file", type.getElementName());
+			String label= String.format("Move type '%s' to a new file", type.getElementName());
 
 			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
 			int relevance= problemsAtLocation ? 1 : 4;
