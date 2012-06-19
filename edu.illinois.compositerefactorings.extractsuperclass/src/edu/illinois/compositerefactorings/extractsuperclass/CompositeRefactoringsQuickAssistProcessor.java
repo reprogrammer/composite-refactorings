@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -72,18 +73,20 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 	}
 
 	private static boolean getCreateNewSuperclassProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
+		if (proposals == null) {
+			return true;
+		}
+
 		TypeDeclaration typeDeclaration= null;
 
-		if (coveringNode instanceof TypeDeclaration) {
+		if (context.getCoveredNode() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)context.getCoveredNode();
+		} else if (coveringNode instanceof TypeDeclaration) {
 			typeDeclaration= (TypeDeclaration)coveringNode;
-		} else if (coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
+		} else if (!(coveringNode instanceof BodyDeclaration) && coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
 			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
 		} else {
 			return false;
-		}
-
-		if (proposals == null) {
-			return true;
 		}
 
 		final ICompilationUnit cu= context.getCompilationUnit();
@@ -105,49 +108,83 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 
 	private static boolean getMoveToImmediateSuperclassProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals)
 			throws CoreException {
-		if (!(coveringNode instanceof SimpleName) || !(coveringNode.getParent() instanceof MethodDeclaration)) {
-			return false;
-		}
-		MethodDeclaration methodDeclaration= (MethodDeclaration)coveringNode.getParent();
-		if (methodDeclaration.getName() != coveringNode || methodDeclaration.resolveBinding() == null) {
-			return false;
-		}
 		if (proposals == null) {
 			return true;
 		}
 
-		final ICompilationUnit cu= context.getCompilationUnit();
-		CompilationUnit cuASTNode= (CompilationUnit)methodDeclaration.getRoot();
-		ASTNode typeDeclarationASTNode= methodDeclaration.getParent();
-		ASTRewrite rewrite= ASTRewrite.create(typeDeclarationASTNode.getAST());
-		String label= "Move to immediate superclass";
-		Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-		ASTRewriteCorrectionProposal proposal= new ASTRewriteCorrectionProposal(label, cu, rewrite, 0, image);
-		ASTNode placeHolderForMethodDeclaration= rewrite.createMoveTarget(methodDeclaration);
-		SimpleType superTypeASTNode= (SimpleType)typeDeclarationASTNode.getStructuralProperty(TypeDeclaration.SUPERCLASS_TYPE_PROPERTY);
-		ITypeBinding superTypeBinding= superTypeASTNode.resolveBinding();
-		// See http://wiki.eclipse.org/JDT/FAQ#From_an_IBinding_to_its_declaring_ASTNode
-		ASTNode SuperTypeDeclarationASTNode= cuASTNode.findDeclaringNode(superTypeBinding);
-		ListRewrite superTypeMembersListRewrite= rewrite.getListRewrite(SuperTypeDeclarationASTNode, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
-		superTypeMembersListRewrite.insertFirst(placeHolderForMethodDeclaration, null);
-		rewrite.remove(methodDeclaration, null);
-		proposals.add(proposal);
-		return true;
-	}
+		BodyDeclaration bodyDeclaration= getSelectedBodyDeclaration(context, coveringNode);
 
-	private static boolean getMoveTypeToNewFileProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
+		if (bodyDeclaration == null) {
+			return false;
+		}
+
 		TypeDeclaration typeDeclaration= null;
 
-		if (coveringNode instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode;
-		} else if (coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
+		if (bodyDeclaration.getParent() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)bodyDeclaration.getParent();
 		} else {
 			return false;
 		}
 
+		final ICompilationUnit cu= context.getCompilationUnit();
+		CompilationUnit cuASTNode= (CompilationUnit)bodyDeclaration.getRoot();
+		ASTRewrite rewrite= ASTRewrite.create(typeDeclaration.getAST());
+		String label= "Move to immediate superclass";
+		Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
+		ASTRewriteCorrectionProposal proposal= new ASTRewriteCorrectionProposal(label, cu, rewrite, 0, image);
+		ASTNode placeHolderForMethodDeclaration= rewrite.createMoveTarget(bodyDeclaration);
+		SimpleType superTypeASTNode= (SimpleType)typeDeclaration.getStructuralProperty(TypeDeclaration.SUPERCLASS_TYPE_PROPERTY);
+		if (superTypeASTNode == null) {
+			return false;
+		}
+		ITypeBinding superTypeBinding= superTypeASTNode.resolveBinding();
+		// See http://wiki.eclipse.org/JDT/FAQ#From_an_IBinding_to_its_declaring_ASTNode
+		ASTNode superTypeDeclarationASTNode= cuASTNode.findDeclaringNode(superTypeBinding);
+		if (superTypeDeclarationASTNode == null) {
+			//FIXME: We should be able to find the super type in some other compilation unit.
+			return false;
+		}
+		ListRewrite superTypeMembersListRewrite= rewrite.getListRewrite(superTypeDeclarationASTNode, TypeDeclaration.BODY_DECLARATIONS_PROPERTY);
+		superTypeMembersListRewrite.insertFirst(placeHolderForMethodDeclaration, null);
+		rewrite.remove(bodyDeclaration, null);
+		proposals.add(proposal);
+		return true;
+	}
+
+	private static BodyDeclaration getSelectedBodyDeclaration(IInvocationContext context, ASTNode coveringNode) {
+		BodyDeclaration bodyDeclaration= null;
+
+		if (context.getCoveredNode() instanceof BodyDeclaration) {
+			bodyDeclaration= (BodyDeclaration)context.getCoveredNode();
+		} else if (coveringNode instanceof BodyDeclaration) {
+			bodyDeclaration= (BodyDeclaration)coveringNode;
+		} else if (coveringNode.getParent() != null) {
+			if (coveringNode.getParent() instanceof BodyDeclaration) {
+				bodyDeclaration= (BodyDeclaration)coveringNode.getParent();
+			} else if (coveringNode.getParent().getParent() != null && coveringNode.getParent().getParent() instanceof BodyDeclaration) {
+				bodyDeclaration= (BodyDeclaration)coveringNode.getParent().getParent();
+			}
+		} else {
+			bodyDeclaration= null;
+		}
+		return bodyDeclaration;
+	}
+
+	private static boolean getMoveTypeToNewFileProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
 		if (proposals == null) {
 			return true;
+		}
+
+		TypeDeclaration typeDeclaration= null;
+
+		if (context.getCoveredNode() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)context.getCoveredNode();
+		} else if (coveringNode instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode;
+		} else if (!(coveringNode instanceof BodyDeclaration) && coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
+		} else {
+			return false;
 		}
 
 		final ICompilationUnit cu= context.getCompilationUnit();
