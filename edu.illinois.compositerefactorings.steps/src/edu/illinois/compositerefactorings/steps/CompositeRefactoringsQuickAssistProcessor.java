@@ -77,7 +77,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		if (coveringNode != null) {
 			ArrayList<ICommandAccess> resultingCollections= new ArrayList<ICommandAccess>();
 			getCreateNewSuperclassProposal(context, coveringNode, false, resultingCollections);
-			getMoveToImmediateSuperclassProposal(context, coveringNode, false, resultingCollections);
+//			getMoveToImmediateSuperclassProposal(context, coveringNode, false, resultingCollections);
 			getMoveTypeToNewFileProposal(context, coveringNode, false, resultingCollections);
 			return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
 		}
