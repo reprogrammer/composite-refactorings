@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: edu.illinois.compositerefactorings.extractsuperclass
-Bundle-SymbolicName: edu.illinois.compositerefactorings.extractsuperclass;singleton:=true
+Bundle-Name: edu.illinois.compositerefactorings.steps
+Bundle-SymbolicName: edu.illinois.compositerefactorings.steps;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.eclipse.jdt.ui,
  org.eclipse.ui,

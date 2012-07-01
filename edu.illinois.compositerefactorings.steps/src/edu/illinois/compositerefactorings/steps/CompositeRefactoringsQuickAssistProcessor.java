@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  */
 
-package edu.illinois.compositerefactorings.extractsuperclass;
+package edu.illinois.compositerefactorings.steps;
 
 import java.util.ArrayList;
 import java.util.Collection;
