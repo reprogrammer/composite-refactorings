@@ -32,7 +32,7 @@ public class StepTestUtilities extends QuickFixTest {
 		return QuickFixTest.collectAssists(context, includeLinkedRename);
 	}
 
-	public static void assertProposalExists(List actualProposals, String proposalName) {
+	public static void assertProposalExists(List<?> actualProposals, String proposalName) {
 		assertNotNull(findProposalByName(proposalName, actualProposals));
 	}
 
