@@ -33,7 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 @SuppressWarnings({ "restriction", "deprecation" })
-public class CreateNewSuperclassTest {
+public class StepTest {
 
 	private IJavaProject fJProject1;
 
