@@ -18,18 +18,19 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
@@ -37,9 +38,6 @@ import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil
 import org.eclipse.jdt.internal.corext.refactoring.structure.MoveInnerToTopRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.structure.PullUpRefactoringProcessor;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
-import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
-import org.eclipse.jdt.internal.ui.javaeditor.JavaEditor;
-import org.eclipse.jdt.internal.ui.text.correction.AssistContext;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
@@ -47,7 +45,6 @@ import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 import org.eclipse.jdt.ui.text.java.correction.ASTRewriteCorrectionProposal;
 import org.eclipse.jdt.ui.text.java.correction.ChangeCorrectionProposal;
 import org.eclipse.jdt.ui.text.java.correction.ICommandAccess;
-import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -77,7 +74,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		if (coveringNode != null) {
 			ArrayList<ICommandAccess> resultingCollections= new ArrayList<ICommandAccess>();
 			getCreateNewSuperclassProposal(context, coveringNode, false, resultingCollections);
-//			getMoveToImmediateSuperclassProposal(context, coveringNode, false, resultingCollections);
+			getMoveToImmediateSuperclassProposal(context, coveringNode, false, resultingCollections);
 			getMoveTypeToNewFileProposal(context, coveringNode, false, resultingCollections);
 			return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
 		}
@@ -118,21 +115,57 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		return true;
 	}
 
-	// See org.eclipse.jdt.ui.actions.PullUpAction.getSelectedMemberFromEditor()
-	private static IMember getSelectedMemberFromEditor(JavaEditor editor) throws JavaModelException {
-		IJavaElement element= SelectionConverter.resolveEnclosingElement(editor, (ITextSelection)editor.getSelectionProvider().getSelection());
-		if (element == null || !(element instanceof IMember))
-			return null;
-		return (IMember)element;
-	}
-
 	private static boolean getMoveToImmediateSuperclassProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals)
 			throws CoreException {
 		if (proposals == null) {
 			return true;
 		}
 
-		IMember member= getSelectedMemberFromEditor((JavaEditor)((AssistContext)context).getEditor());
+		IMember member= null;
+
+		IMember fieldMember= null;
+
+		FieldDeclaration fieldDeclaration= null;
+
+		if (context.getCoveredNode() instanceof FieldDeclaration) {
+			fieldDeclaration= (FieldDeclaration)context.getCoveredNode();
+		} else if (coveringNode instanceof FieldDeclaration) {
+			fieldDeclaration= (FieldDeclaration)coveringNode;
+		} else if (coveringNode.getParent() instanceof FieldDeclaration) {
+			fieldDeclaration= (FieldDeclaration)coveringNode.getParent();
+		} else if (coveringNode.getParent() != null && coveringNode.getParent().getParent() instanceof FieldDeclaration) {
+			fieldDeclaration= (FieldDeclaration)coveringNode.getParent().getParent();
+		}
+
+		if (fieldDeclaration != null) {
+			// See http://stackoverflow.com/a/11210998/130224
+			VariableDeclarationFragment variableDeclarationFragment= (VariableDeclarationFragment)fieldDeclaration.fragments().get(0);
+			fieldMember= (IMember)variableDeclarationFragment.resolveBinding().getJavaElement();
+		}
+
+		IMember methodMember= null;
+
+		MethodDeclaration methodDeclaration= null;
+
+		if (context.getCoveredNode() instanceof MethodDeclaration) {
+			methodDeclaration= (MethodDeclaration)context.getCoveredNode();
+		} else if (coveringNode instanceof MethodDeclaration) {
+			methodDeclaration= (MethodDeclaration)coveringNode;
+		} else if (coveringNode.getParent() instanceof MethodDeclaration) {
+			methodDeclaration= (MethodDeclaration)coveringNode.getParent();
+		}
+
+		if (methodDeclaration != null) {
+			methodMember= (IMember)methodDeclaration.resolveBinding().getJavaElement();
+		}
+
+		if (fieldMember != null) {
+			member= fieldMember;
+		}
+
+		if (methodMember != null) {
+			member= methodMember;
+		}
 
 		if (member == null) {
 			return false;
