@@ -128,4 +128,26 @@ public class StepTest {
 		StepTestUtilities.assertProposalExists(proposals, String.format("Move '%s' to super type '%s'", "m", "D"));
 	}
 
+	@Test
+	public void testMoveTypeToNewFile1() throws Exception {
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+		StringBuffer buf= new StringBuffer();
+		buf.append("package test1;\n");
+		buf.append("public class C extends D {\n");
+		buf.append("    public void m() {\n");
+		buf.append("    }\n");
+		buf.append("}\n");
+		buf.append("\n");
+		buf.append("class D {\n");
+		buf.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+
+		int offset= buf.toString().indexOf("class D") + "class ".length();
+		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
+		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
+
+		StepTestUtilities.assertCorrectLabels(proposals);
+		StepTestUtilities.assertProposalExists(proposals, String.format("Move type '%s' to a new file", "D"));
+	}
+
 }
