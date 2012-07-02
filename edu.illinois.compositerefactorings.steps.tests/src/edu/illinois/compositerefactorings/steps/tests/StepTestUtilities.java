@@ -9,6 +9,7 @@
 package edu.illinois.compositerefactorings.steps.tests;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.ui.tests.quickfix.QuickFixTest;
@@ -29,6 +30,10 @@ public class StepTestUtilities extends QuickFixTest {
 
 	public static ArrayList<?> doCollectAssists(IInvocationContext context, boolean includeLinkedRename) throws CoreException {
 		return QuickFixTest.collectAssists(context, includeLinkedRename);
+	}
+
+	public static void assertProposalExists(List actualProposals, String proposalName) {
+		assertNotNull(findProposalByName(proposalName, actualProposals));
 	}
 
 }
