@@ -6,7 +6,7 @@ interface I {
 
 }
 
-class A implements I {
+class C implements I {
 	public void m() {
 	}
 
@@ -14,9 +14,9 @@ class A implements I {
 	}
 
 	void test() {
-		A a= new A();
-		if (a instanceof A) {
-			((A)a).m();
+		C o = new C();
+		if (o instanceof C) {
+			((C) o).m();
 		}
 	}
 }

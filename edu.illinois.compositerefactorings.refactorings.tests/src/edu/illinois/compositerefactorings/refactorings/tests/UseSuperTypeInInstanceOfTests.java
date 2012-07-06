@@ -33,7 +33,7 @@ import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.
 @SuppressWarnings("restriction")
 public class UseSuperTypeInInstanceOfTests extends RefactoringTest {
 
-	private static final Class clazz= UseSuperTypeInInstanceOfTests.class;
+	private static final Class<UseSuperTypeInInstanceOfTests> clazz= UseSuperTypeInInstanceOfTests.class;
 
 	private static final String REFACTORING_PATH= "UseSupertypeInInstanceOf/";
 
@@ -116,7 +116,15 @@ public class UseSuperTypeInInstanceOfTests extends RefactoringTest {
 	}
 
 	public void test0() throws Exception {
-		validatePassingTest("A", new String[] { "A" }, "p.I");
+		validatePassingTest("C", new String[] { "C" }, "p.I");
+	}
+
+	public void test1() throws Exception {
+		validatePassingTest("C", new String[] { "C", "I" }, "p.I");
+	}
+
+	public void test2() throws Exception {
+		validatePassingTest("C", new String[] { "C", "D" }, "p.D");
 	}
 
 }

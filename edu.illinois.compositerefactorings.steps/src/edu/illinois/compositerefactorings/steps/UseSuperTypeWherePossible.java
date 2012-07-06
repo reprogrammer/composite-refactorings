@@ -28,6 +28,7 @@ public abstract class UseSuperTypeWherePossible extends RefactoringBasedStep {
 		super(context, coveringNode, problemsAtLocation);
 	}
 
+	// FIXME: Consider an implemented interface as a supertype and prioritize them over non-immediate supertypes.
 	protected static List<IType> getClosestSupertypes(IJavaProject project, IType type) throws CoreException {
 		final int MAX_NUMBER_OF_SUPERTYPES= 2;
 		List<IType> closestsSuperTypes= new ArrayList<IType>();
