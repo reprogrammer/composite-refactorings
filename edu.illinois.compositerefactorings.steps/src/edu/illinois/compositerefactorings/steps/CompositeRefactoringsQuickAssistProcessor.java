@@ -27,7 +27,6 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -35,7 +34,6 @@ import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
-import org.eclipse.jdt.internal.corext.refactoring.structure.MoveInnerToTopRefactoring;
 import org.eclipse.jdt.internal.corext.refactoring.structure.PullUpRefactoringProcessor;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
@@ -63,7 +61,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		if (coveringNode != null) {
 			return getCreateNewSuperclassProposal(context, coveringNode, false, null) ||
 					getMoveToImmediateSuperclassProposal(context, coveringNode, false, null) ||
-					getMoveTypeToNewFileProposal(context, coveringNode, false, null) ||
+					new MoveTypeToNewFile(context, coveringNode, false).hasInputs() ||
 					new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).hasInputs() ||
 					new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).hasInputs();
 		}
@@ -77,7 +75,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			ArrayList<ICommandAccess> resultingCollections= new ArrayList<ICommandAccess>();
 			getCreateNewSuperclassProposal(context, coveringNode, false, resultingCollections);
 			getMoveToImmediateSuperclassProposal(context, coveringNode, false, resultingCollections);
-			getMoveTypeToNewFileProposal(context, coveringNode, false, resultingCollections);
+			resultingCollections.addAll(new MoveTypeToNewFile(context, coveringNode, false).getProposals());
 			resultingCollections.addAll(new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).getProposals());
 			resultingCollections.addAll(new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).getProposals());
 			return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
@@ -227,49 +225,6 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			proposals.add(proposal);
 		}
 
-		return true;
-	}
-
-	private static boolean getMoveTypeToNewFileProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals) throws CoreException {
-		if (proposals == null) {
-			return true;
-		}
-
-		TypeDeclaration typeDeclaration= null;
-
-		if (context.getCoveredNode() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)context.getCoveredNode();
-		} else if (coveringNode instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode;
-		} else if (!(coveringNode instanceof BodyDeclaration) && coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
-		} else {
-			return false;
-		}
-
-		final ICompilationUnit cu= context.getCompilationUnit();
-		ITypeBinding typeBinding= typeDeclaration.resolveBinding();
-		IType type= (IType)typeBinding.getJavaElement();
-		final MoveInnerToTopRefactoring moveInnerToTopRefactoring= new MoveInnerToTopRefactoring(type, null);
-
-		if (moveInnerToTopRefactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-			String label= String.format("Move type '%s' to a new file", type.getElementName());
-
-			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-			int relevance= problemsAtLocation ? 1 : 4;
-			RefactoringStatus status= moveInnerToTopRefactoring.checkFinalConditions(new NullProgressMonitor());
-			Change change= null;
-			if (status.hasFatalError()) {
-				change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
-				((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
-				return false;
-			} else {
-				change= moveInnerToTopRefactoring.createChange(new NullProgressMonitor());
-			}
-			ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
-
-			proposals.add(proposal);
-		}
 		return true;
 	}
 
