@@ -11,7 +11,6 @@ package edu.illinois.compositerefactorings.steps;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -23,7 +22,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
@@ -35,7 +33,6 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
-import org.eclipse.jdt.core.refactoring.descriptors.UseSupertypeDescriptor;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.internal.corext.refactoring.structure.MoveInnerToTopRefactoring;
@@ -56,8 +53,6 @@ import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.InsertEdit;
 
-import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSupertypeInInstanceOfDescriptor;
-
 
 @SuppressWarnings("restriction")
 public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistProcessor {
@@ -69,8 +64,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			return getCreateNewSuperclassProposal(context, coveringNode, false, null) ||
 					getMoveToImmediateSuperclassProposal(context, coveringNode, false, null) ||
 					getMoveTypeToNewFileProposal(context, coveringNode, false, null) ||
-					getReplaceTypeBySupertypeInVariableDeclarationsProposal(context, coveringNode, false, null) ||
-					getReplaceTypeBySupertypeInInstanceOfExpressionsProposal(context, coveringNode, false, null);
+					new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).hasInputs() ||
+					new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).hasInputs();
 		}
 		return false;
 	}
@@ -83,8 +78,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			getCreateNewSuperclassProposal(context, coveringNode, false, resultingCollections);
 			getMoveToImmediateSuperclassProposal(context, coveringNode, false, resultingCollections);
 			getMoveTypeToNewFileProposal(context, coveringNode, false, resultingCollections);
-			getReplaceTypeBySupertypeInVariableDeclarationsProposal(context, coveringNode, false, resultingCollections);
-			getReplaceTypeBySupertypeInInstanceOfExpressionsProposal(context, coveringNode, false, resultingCollections);
+			resultingCollections.addAll(new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).getProposals());
+			resultingCollections.addAll(new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).getProposals());
 			return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
 		}
 		return null;
@@ -276,136 +271,6 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			proposals.add(proposal);
 		}
 		return true;
-	}
-
-	private static List<IType> getClosestSupertypes(IJavaProject project, IType type) throws JavaModelException {
-		final int MAX_NUMBER_OF_SUPERTYPES= 2;
-		List<IType> closestsSuperTypes= new ArrayList<IType>();
-		IType currentType= type;
-		IType currentSupertype= null;
-		do {
-			currentSupertype= currentType.newTypeHierarchy(project, new NullProgressMonitor()).getSuperclass(currentType);
-			if (currentSupertype != null) {
-				closestsSuperTypes.add(currentSupertype);
-				currentType= currentSupertype;
-			}
-		} while (currentSupertype != null && closestsSuperTypes.size() < MAX_NUMBER_OF_SUPERTYPES);
-		return closestsSuperTypes;
-	}
-
-	private static boolean getReplaceTypeBySupertypeInVariableDeclarationsProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals)
-			throws CoreException {
-		if (proposals == null) {
-			return true;
-		}
-
-		TypeDeclaration typeDeclaration= null;
-
-		if (context.getCoveredNode() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)context.getCoveredNode();
-		} else if (coveringNode instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode;
-		} else if (!(coveringNode instanceof BodyDeclaration) && coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
-		} else {
-			return false;
-		}
-
-		final ICompilationUnit cu= context.getCompilationUnit();
-		ITypeBinding typeBinding= typeDeclaration.resolveBinding();
-		IType type= (IType)typeBinding.getJavaElement();
-
-		IJavaProject project= cu.getJavaProject();
-
-		List<IType> supertypes= getClosestSupertypes(project, type);
-
-		boolean addedSomeProposal= false;
-		for (IType supertype : supertypes) {
-			UseSupertypeDescriptor descriptor= new UseSupertypeDescriptor();
-			descriptor.setProject(project.getElementName());
-			descriptor.setReplaceInstanceof(false);
-			descriptor.setSubtype(type);
-			descriptor.setSupertype(supertype);
-			Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
-
-			if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-				String label= String.format("Replace type '%s' by super type '%s' in variable declarations", type.getElementName(), supertype.getElementName());
-
-				Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-				int relevance= problemsAtLocation ? 1 : 4;
-				RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
-				Change change= null;
-				if (status.hasFatalError()) {
-					change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
-					((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
-				} else {
-					change= refactoring.createChange(new NullProgressMonitor());
-					addedSomeProposal= true;
-				}
-				ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
-				proposals.add(proposal);
-			}
-		}
-
-		return addedSomeProposal;
-	}
-
-	private static boolean getReplaceTypeBySupertypeInInstanceOfExpressionsProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals)
-			throws CoreException {
-		if (proposals == null) {
-			return true;
-		}
-
-		TypeDeclaration typeDeclaration= null;
-
-		if (context.getCoveredNode() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)context.getCoveredNode();
-		} else if (coveringNode instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode;
-		} else if (!(coveringNode instanceof BodyDeclaration) && coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
-			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
-		} else {
-			return false;
-		}
-
-		final ICompilationUnit cu= context.getCompilationUnit();
-		ITypeBinding typeBinding= typeDeclaration.resolveBinding();
-		IType type= (IType)typeBinding.getJavaElement();
-
-		IJavaProject project= cu.getJavaProject();
-
-		List<IType> supertypes= getClosestSupertypes(project, type);
-
-		boolean addedSomeProposal= false;
-		for (IType supertype : supertypes) {
-			UseSupertypeInInstanceOfDescriptor descriptor= new UseSupertypeInInstanceOfDescriptor();
-			descriptor.setProject(project.getElementName());
-			descriptor.setSubtype(type);
-			descriptor.setSupertype(supertype);
-			Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
-
-			if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-				String label= String.format("Replace type '%s' by super type '%s' in instanceof expressions", type.getElementName(), supertype.getElementName());
-
-				Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-				int relevance= problemsAtLocation ? 1 : 4;
-				RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
-				Change change= null;
-				if (status.hasFatalError()) {
-					change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
-					((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
-					return false;
-				} else {
-					change= refactoring.createChange(new NullProgressMonitor());
-					addedSomeProposal= true;
-				}
-				ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
-
-				proposals.add(proposal);
-			}
-		}
-
-		return addedSomeProposal;
 	}
 
 }
