@@ -278,17 +278,18 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		return true;
 	}
 
-	//TODO: Make the Quick Assist action availabe for all super types of the selected type.
 	private static List<IType> getClosestSupertypes(IJavaProject project, IType type) throws JavaModelException {
-		final int MAX_NUMBER_OF_SUPERTYPES= 3;
+		final int MAX_NUMBER_OF_SUPERTYPES= 2;
 		List<IType> closestsSuperTypes= new ArrayList<IType>();
-		IType nextSupertype= null;
+		IType currentType= type;
+		IType currentSupertype= null;
 		do {
-			nextSupertype= type.newTypeHierarchy(project, new NullProgressMonitor()).getSuperclass(type);
-			if (nextSupertype != null) {
-				closestsSuperTypes.add(nextSupertype);
+			currentSupertype= currentType.newTypeHierarchy(project, new NullProgressMonitor()).getSuperclass(currentType);
+			if (currentSupertype != null) {
+				closestsSuperTypes.add(currentSupertype);
+				currentType= currentSupertype;
 			}
-		} while (nextSupertype != null && closestsSuperTypes.size() < MAX_NUMBER_OF_SUPERTYPES);
+		} while (currentSupertype != null && closestsSuperTypes.size() < MAX_NUMBER_OF_SUPERTYPES);
 		return closestsSuperTypes;
 	}
 
@@ -316,35 +317,37 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 
 		IJavaProject project= cu.getJavaProject();
 
-		IType immediateSuperclass= type.newTypeHierarchy(project, new NullProgressMonitor()).getSuperclass(type);
+		List<IType> supertypes= getClosestSupertypes(project, type);
 
-		UseSupertypeDescriptor descriptor= new UseSupertypeDescriptor();
-		descriptor.setProject(project.getElementName());
-		descriptor.setReplaceInstanceof(false);
-		descriptor.setSubtype(type);
-		descriptor.setSupertype(immediateSuperclass);
-		Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
+		boolean addedSomeProposal= false;
+		for (IType supertype : supertypes) {
+			UseSupertypeDescriptor descriptor= new UseSupertypeDescriptor();
+			descriptor.setProject(project.getElementName());
+			descriptor.setReplaceInstanceof(false);
+			descriptor.setSubtype(type);
+			descriptor.setSupertype(supertype);
+			Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
 
-		if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-			String label= String.format("Replace type '%s' by super type '%s' in variable declarations", type.getElementName(), immediateSuperclass.getElementName());
+			if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
+				String label= String.format("Replace type '%s' by super type '%s' in variable declarations", type.getElementName(), supertype.getElementName());
 
-			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-			int relevance= problemsAtLocation ? 1 : 4;
-			RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
-			Change change= null;
-			if (status.hasFatalError()) {
-				change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
-				((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
-				return false;
-			} else {
-				change= refactoring.createChange(new NullProgressMonitor());
+				Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
+				int relevance= problemsAtLocation ? 1 : 4;
+				RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
+				Change change= null;
+				if (status.hasFatalError()) {
+					change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
+					((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
+				} else {
+					change= refactoring.createChange(new NullProgressMonitor());
+					addedSomeProposal= true;
+				}
+				ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
+				proposals.add(proposal);
 			}
-			ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
-
-			proposals.add(proposal);
 		}
 
-		return true;
+		return addedSomeProposal;
 	}
 
 	private static boolean getReplaceTypeBySupertypeInInstanceOfExpressionsProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals)
@@ -371,34 +374,38 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 
 		IJavaProject project= cu.getJavaProject();
 
-		IType immediateSuperclass= type.newTypeHierarchy(project, new NullProgressMonitor()).getSuperclass(type);
+		List<IType> supertypes= getClosestSupertypes(project, type);
 
-		UseSupertypeInInstanceOfDescriptor descriptor= new UseSupertypeInInstanceOfDescriptor();
-		descriptor.setProject(project.getElementName());
-		descriptor.setSubtype(type);
-		descriptor.setSupertype(immediateSuperclass);
-		Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
+		boolean addedSomeProposal= false;
+		for (IType supertype : supertypes) {
+			UseSupertypeInInstanceOfDescriptor descriptor= new UseSupertypeInInstanceOfDescriptor();
+			descriptor.setProject(project.getElementName());
+			descriptor.setSubtype(type);
+			descriptor.setSupertype(supertype);
+			Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
 
-		if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-			String label= String.format("Replace type '%s' by super type '%s' in instanceof expressions", type.getElementName(), immediateSuperclass.getElementName());
+			if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
+				String label= String.format("Replace type '%s' by super type '%s' in instanceof expressions", type.getElementName(), supertype.getElementName());
 
-			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-			int relevance= problemsAtLocation ? 1 : 4;
-			RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
-			Change change= null;
-			if (status.hasFatalError()) {
-				change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
-				((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
-				return false;
-			} else {
-				change= refactoring.createChange(new NullProgressMonitor());
+				Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
+				int relevance= problemsAtLocation ? 1 : 4;
+				RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
+				Change change= null;
+				if (status.hasFatalError()) {
+					change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
+					((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
+					return false;
+				} else {
+					change= refactoring.createChange(new NullProgressMonitor());
+					addedSomeProposal= true;
+				}
+				ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
+
+				proposals.add(proposal);
 			}
-			ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
-
-			proposals.add(proposal);
 		}
 
-		return true;
+		return addedSomeProposal;
 	}
 
 }
