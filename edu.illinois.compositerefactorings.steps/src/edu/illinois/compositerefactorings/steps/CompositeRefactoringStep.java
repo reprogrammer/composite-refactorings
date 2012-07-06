@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.steps;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.eclipse.core.runtime.CoreException;
@@ -46,6 +47,14 @@ public abstract class CompositeRefactoringStep {
 		return !getInputs().isEmpty();
 	}
 
-	public abstract Collection<ICommandAccess> getProposals() throws CoreException;
+	protected abstract Collection<? extends ICommandAccess> getProposals(IJavaElement input) throws CoreException;
+
+	public Collection<? extends ICommandAccess> getProposals() throws CoreException {
+		Collection<ICommandAccess> proposals= new ArrayList<ICommandAccess>();
+		for (IJavaElement input : getInputs()) {
+			proposals.addAll(getProposals(input));
+		}
+		return proposals;
+	}
 
 }

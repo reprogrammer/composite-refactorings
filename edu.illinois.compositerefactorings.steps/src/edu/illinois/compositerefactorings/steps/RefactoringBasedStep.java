@@ -37,33 +37,31 @@ public abstract class RefactoringBasedStep extends CompositeRefactoringStep {
 
 	protected abstract Collection<RefactoringDescriptor> getDescriptors(IJavaElement input) throws CoreException;
 
-	protected Collection<RefactoringDescriptor> getDescriptors() throws CoreException {
-		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
-		for (IJavaElement input : getInputs()) {
-			descriptors.addAll(getDescriptors(input));
+	protected Collection<? extends ICommandAccess> getProposals(RefactoringDescriptor descriptor) throws CoreException {
+		Collection<ICommandAccess> proposals= new ArrayList<ICommandAccess>();
+		Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
+		if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
+			int relevance= problemsAtLocation ? 1 : 4;
+			RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
+			Change change= null;
+			if (status.hasFatalError()) {
+				change= new TextFileChange("fatal error", (IFile)getCompilationUnit().getResource()); //$NON-NLS-1$
+				((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
+			} else {
+				change= refactoring.createChange(new NullProgressMonitor());
+			}
+			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
+			ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(descriptor.getDescription(), change, relevance, image);
+			proposals.add(proposal);
 		}
-		return descriptors;
+		return proposals;
 	}
 
 	@Override
-	public Collection<ICommandAccess> getProposals() throws CoreException {
+	protected Collection<? extends ICommandAccess> getProposals(IJavaElement input) throws CoreException {
 		Collection<ICommandAccess> proposals= new ArrayList<ICommandAccess>();
-		for (RefactoringDescriptor descriptor : getDescriptors()) {
-			Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
-			if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
-				int relevance= problemsAtLocation ? 1 : 4;
-				RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
-				Change change= null;
-				if (status.hasFatalError()) {
-					change= new TextFileChange("fatal error", (IFile)getCompilationUnit().getResource()); //$NON-NLS-1$
-					((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
-				} else {
-					change= refactoring.createChange(new NullProgressMonitor());
-				}
-				Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
-				ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(descriptor.getDescription(), change, relevance, image);
-				proposals.add(proposal);
-			}
+		for (RefactoringDescriptor descriptor : getDescriptors(input)) {
+			proposals.addAll(getProposals(descriptor));
 		}
 		return proposals;
 	}

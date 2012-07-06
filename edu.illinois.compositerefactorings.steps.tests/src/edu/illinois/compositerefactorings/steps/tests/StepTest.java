@@ -94,12 +94,12 @@ public class StepTest {
 
 		buf= new StringBuffer();
 		buf.append("package test1;\n");
-		buf.append("public class C extends NewSuperclass {\n");
+		buf.append("public class C extends SuperC {\n");
 		buf.append("    public void m() {\n");
 		buf.append("    }\n");
 		buf.append("}\n");
 		buf.append("\n");
-		buf.append("class NewSuperclass {\n");
+		buf.append("class SuperC {\n");
 		buf.append("}\n");
 		String expected1= buf.toString();
 
