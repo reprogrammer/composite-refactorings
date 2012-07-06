@@ -61,7 +61,7 @@ public class MoveTypeToNewFile extends RefactoringBasedStep {
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
 		String description= String.format("Move type '%s' to a new file", type.getElementName());
 		Map<String, String> arguments= new HashMap<String, String>();
-		arguments.put("input", JavaRefactoringDescriptorUtil.elementToHandle(getJavaProject().getElementName(), type));
+		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(getJavaProject().getElementName(), type));
 		ConvertMemberTypeDescriptor descriptor= new ConvertMemberTypeDescriptor(getJavaProject().getElementName(), description, null, arguments, RefactoringDescriptor.STRUCTURAL_CHANGE
 				| RefactoringDescriptor.MULTI_CHANGE);
 		descriptors.add(descriptor);
