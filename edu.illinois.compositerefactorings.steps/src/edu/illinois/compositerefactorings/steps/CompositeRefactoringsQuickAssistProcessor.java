@@ -56,6 +56,8 @@ import org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.InsertEdit;
 
+import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSupertypeInInstanceOfDescriptor;
+
 
 @SuppressWarnings("restriction")
 public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistProcessor {
@@ -67,7 +69,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			return getCreateNewSuperclassProposal(context, coveringNode, false, null) ||
 					getMoveToImmediateSuperclassProposal(context, coveringNode, false, null) ||
 					getMoveTypeToNewFileProposal(context, coveringNode, false, null) ||
-					getReplaceTypeBySupertypeInVariableDeclarationsProposal(context, coveringNode, false, null);
+					getReplaceTypeBySupertypeInVariableDeclarationsProposal(context, coveringNode, false, null) ||
+					getReplaceTypeBySupertypeInInstanceOfExpressionsProposal(context, coveringNode, false, null);
 		}
 		return false;
 	}
@@ -81,6 +84,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			getMoveToImmediateSuperclassProposal(context, coveringNode, false, resultingCollections);
 			getMoveTypeToNewFileProposal(context, coveringNode, false, resultingCollections);
 			getReplaceTypeBySupertypeInVariableDeclarationsProposal(context, coveringNode, false, resultingCollections);
+			getReplaceTypeBySupertypeInInstanceOfExpressionsProposal(context, coveringNode, false, resultingCollections);
 			return resultingCollections.toArray(new IJavaCompletionProposal[resultingCollections.size()]);
 		}
 		return null;
@@ -274,6 +278,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		return true;
 	}
 
+	//TODO: Make the Quick Assist action availabe for all super types of the selected type.
 	private static List<IType> getClosestSupertypes(IJavaProject project, IType type) throws JavaModelException {
 		final int MAX_NUMBER_OF_SUPERTYPES= 3;
 		List<IType> closestsSuperTypes= new ArrayList<IType>();
@@ -322,6 +327,60 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 
 		if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
 			String label= String.format("Replace type '%s' by super type '%s' in variable declarations", type.getElementName(), immediateSuperclass.getElementName());
+
+			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
+			int relevance= problemsAtLocation ? 1 : 4;
+			RefactoringStatus status= refactoring.checkFinalConditions(new NullProgressMonitor());
+			Change change= null;
+			if (status.hasFatalError()) {
+				change= new TextFileChange("fatal error", (IFile)cu.getResource()); //$NON-NLS-1$
+				((TextFileChange)change).setEdit(new InsertEdit(0, "")); //$NON-NLS-1$
+				return false;
+			} else {
+				change= refactoring.createChange(new NullProgressMonitor());
+			}
+			ChangeCorrectionProposal proposal= new ChangeCorrectionProposal(label, change, relevance, image);
+
+			proposals.add(proposal);
+		}
+
+		return true;
+	}
+
+	private static boolean getReplaceTypeBySupertypeInInstanceOfExpressionsProposal(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation, Collection<ICommandAccess> proposals)
+			throws CoreException {
+		if (proposals == null) {
+			return true;
+		}
+
+		TypeDeclaration typeDeclaration= null;
+
+		if (context.getCoveredNode() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)context.getCoveredNode();
+		} else if (coveringNode instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode;
+		} else if (!(coveringNode instanceof BodyDeclaration) && coveringNode.getParent() != null && coveringNode.getParent() instanceof TypeDeclaration) {
+			typeDeclaration= (TypeDeclaration)coveringNode.getParent();
+		} else {
+			return false;
+		}
+
+		final ICompilationUnit cu= context.getCompilationUnit();
+		ITypeBinding typeBinding= typeDeclaration.resolveBinding();
+		IType type= (IType)typeBinding.getJavaElement();
+
+		IJavaProject project= cu.getJavaProject();
+
+		IType immediateSuperclass= type.newTypeHierarchy(project, new NullProgressMonitor()).getSuperclass(type);
+
+		UseSupertypeInInstanceOfDescriptor descriptor= new UseSupertypeInInstanceOfDescriptor();
+		descriptor.setProject(project.getElementName());
+		descriptor.setSubtype(type);
+		descriptor.setSupertype(immediateSuperclass);
+		Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
+
+		if (refactoring.checkInitialConditions(new NullProgressMonitor()).isOK()) {
+			String label= String.format("Replace type '%s' by super type '%s' in instanceof expressions", type.getElementName(), immediateSuperclass.getElementName());
 
 			Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
 			int relevance= problemsAtLocation ? 1 : 4;
