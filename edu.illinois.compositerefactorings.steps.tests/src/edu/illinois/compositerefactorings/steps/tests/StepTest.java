@@ -179,7 +179,6 @@ public class StepTest {
 		StepTestUtilities.assertCorrectLabels(proposals);
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "E", "D"));
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "E", "D"));
-
 	}
 
 	@Test
@@ -218,6 +217,42 @@ public class StepTest {
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "F", "E"));
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "F", "D"));
 		StepTestUtilities.assertProposalDoesNotExist(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "F", "Object"));
+	}
+
+	@Test
+	public void testReplaceTypeBySupertype3() throws Exception {
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+		StringBuffer buf= new StringBuffer();
+		buf.append("interface I {\n");
+		buf.append("\n");
+		buf.append("    void m();\n");
+		buf.append("\n");
+		buf.append("}\n");
+		buf.append("\n");
+		buf.append("class C implements I {\n");
+		buf.append("\n");
+		buf.append("    public void m() {\n");
+		buf.append("    }\n");
+		buf.append("\n");
+		buf.append("    void test() {\n");
+		buf.append("        C o = new C();\n");
+		buf.append("        if (o instanceof C) {\n");
+		buf.append("            ((C) o).m();\n");
+		buf.append("        }\n");
+		buf.append("    }\n");
+		buf.append("    \n");
+		buf.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+
+		int offset= buf.toString().indexOf("class C") + "class ".length();
+		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
+
+		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
+		StepTestUtilities.assertCorrectLabels(proposals);
+		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "C", "I"));
+		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "C", "Object"));
+		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "C", "I"));
+		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "C", "Object"));
 	}
 
 }
