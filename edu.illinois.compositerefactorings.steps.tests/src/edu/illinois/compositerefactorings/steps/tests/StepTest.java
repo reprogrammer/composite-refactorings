@@ -150,7 +150,7 @@ public class StepTest {
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 
 		StepTestUtilities.assertCorrectLabels(proposals);
-		StepTestUtilities.assertProposalExists(proposals, String.format("Move type '%s' to a new file", "D"));
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.MoveTypeToNewFile_description, "D"));
 	}
 
 	@Test

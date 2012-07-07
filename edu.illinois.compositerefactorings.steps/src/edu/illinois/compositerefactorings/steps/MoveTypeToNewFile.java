@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.steps;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,6 +25,8 @@ import org.eclipse.jdt.core.refactoring.descriptors.ConvertMemberTypeDescriptor;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
+
+import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
 
 @SuppressWarnings("restriction")
 public class MoveTypeToNewFile extends RefactoringBasedStep {
@@ -59,7 +62,7 @@ public class MoveTypeToNewFile extends RefactoringBasedStep {
 	protected Collection<RefactoringDescriptor> getDescriptors(IJavaElement input) throws CoreException {
 		IType type= (IType)input;
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
-		String description= String.format("Move type '%s' to a new file", type.getElementName());
+		String description= MessageFormat.format(CompositeRefactoringsMessages.MoveTypeToNewFile_description, type.getElementName());
 		Map<String, String> arguments= new HashMap<String, String>();
 		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(getJavaProject().getElementName(), type));
 		ConvertMemberTypeDescriptor descriptor= new ConvertMemberTypeDescriptor(getJavaProject().getElementName(), description, null, arguments, RefactoringDescriptor.STRUCTURAL_CHANGE

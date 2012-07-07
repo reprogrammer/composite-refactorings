@@ -22,6 +22,8 @@ public class CompositeRefactoringsMessages extends NLS {
 
 	public static String MoveToImmediateSuperclass_description;
 
+	public static String MoveTypeToNewFile_description;
+
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, CompositeRefactoringsMessages.class);
