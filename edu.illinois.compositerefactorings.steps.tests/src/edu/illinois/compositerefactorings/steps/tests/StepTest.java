@@ -128,7 +128,7 @@ public class StepTest {
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 
 		StepTestUtilities.assertCorrectLabels(proposals);
-		StepTestUtilities.assertProposalExists(proposals, String.format("Move '%s' to super type '%s'", "m", "D"));
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.MoveToImmediateSuperclass_description, "m", "D"));
 	}
 
 	@Test

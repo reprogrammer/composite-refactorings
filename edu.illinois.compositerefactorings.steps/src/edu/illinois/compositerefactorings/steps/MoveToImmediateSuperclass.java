@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.steps;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,6 +29,8 @@ import org.eclipse.jdt.core.refactoring.descriptors.PullUpDescriptor;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
+
+import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
 
 @SuppressWarnings("restriction")
 public class MoveToImmediateSuperclass extends RefactoringBasedStep {
@@ -117,7 +120,7 @@ public class MoveToImmediateSuperclass extends RefactoringBasedStep {
 		if (numberOfMethodsToRemoveFromSubclasses > 0) {
 			arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_ELEMENT + 2, JavaRefactoringDescriptorUtil.elementToHandle(getJavaProject().getElementName(), member));
 		}
-		String description= String.format("Move '%s' to super type '%s'", member.getElementName(), immediateSuperclass.getElementName());
+		String description= MessageFormat.format(CompositeRefactoringsMessages.MoveToImmediateSuperclass_description, member.getElementName(), immediateSuperclass.getElementName());
 		PullUpDescriptor descriptor= new PullUpDescriptor(getJavaProject().getElementName(), description, null, arguments, RefactoringDescriptor.STRUCTURAL_CHANGE | RefactoringDescriptor.MULTI_CHANGE);
 		descriptors.add(descriptor);
 		return descriptors;

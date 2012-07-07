@@ -20,6 +20,8 @@ public class CompositeRefactoringsMessages extends NLS {
 
 	public static String CreateNewSuperclass_description;
 
+	public static String MoveToImmediateSuperclass_description;
+
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, CompositeRefactoringsMessages.class);
