@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.steps;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -19,6 +20,8 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.refactoring.descriptors.UseSupertypeDescriptor;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
+
+import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
 
 public class ReplaceTypeBySupertypeInVariableDeclarations extends UseSuperTypeWherePossible {
 
@@ -33,7 +36,7 @@ public class ReplaceTypeBySupertypeInVariableDeclarations extends UseSuperTypeWh
 		List<IType> supertypes= getClosestSupertypes(getJavaProject(), type);
 		for (IType supertype : supertypes) {
 			UseSupertypeDescriptor descriptor= new UseSupertypeDescriptor();
-			String description= String.format("Replace type '%s' by super type '%s' in variable declarations", type.getElementName(), supertype.getElementName());
+			String description= MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInVariableDeclarations_description, type.getElementName(), supertype.getElementName());
 			descriptor.setDescription(description);
 			descriptor.setProject(getJavaProject().getElementName());
 			descriptor.setReplaceInstanceof(false);

@@ -11,9 +11,13 @@ package edu.illinois.compositerefactorings.messages;
 import org.eclipse.osgi.util.NLS;
 
 public class CompositeRefactoringsMessages extends NLS {
+
 	private static final String BUNDLE_NAME= "edu.illinois.compositerefactorings.messages.compositerefactoringsmessages"; //$NON-NLS-1$
 
 	public static String ReplaceTypeBySupertypeInInstanceOf_description;
+
+	public static String ReplaceTypeBySupertypeInVariableDeclarations_description;
+
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, CompositeRefactoringsMessages.class);
