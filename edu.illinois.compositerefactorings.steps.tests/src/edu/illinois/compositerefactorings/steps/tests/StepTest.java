@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.steps.tests;
 
+import java.text.MessageFormat;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -31,6 +32,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
 
 @SuppressWarnings({ "restriction", "deprecation" })
 public class StepTest {
@@ -178,7 +181,7 @@ public class StepTest {
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 		StepTestUtilities.assertCorrectLabels(proposals);
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "E", "D"));
-		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "E", "D"));
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, "E", "D"));
 	}
 
 	@Test
@@ -214,9 +217,9 @@ public class StepTest {
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "F", "E"));
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "F", "D"));
 		StepTestUtilities.assertProposalDoesNotExist(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "F", "Object"));
-		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "F", "E"));
-		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "F", "D"));
-		StepTestUtilities.assertProposalDoesNotExist(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "F", "Object"));
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, "F", "E"));
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, "F", "D"));
+		StepTestUtilities.assertProposalDoesNotExist(proposals, MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, "F", "Object"));
 	}
 
 	@Test
@@ -251,8 +254,8 @@ public class StepTest {
 		StepTestUtilities.assertCorrectLabels(proposals);
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "C", "I"));
 		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in variable declarations", "C", "Object"));
-		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "C", "I"));
-		StepTestUtilities.assertProposalExists(proposals, String.format("Replace type '%s' by super type '%s' in instanceof expressions", "C", "Object"));
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, "C", "I"));
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, "C", "Object"));
 	}
 
 }

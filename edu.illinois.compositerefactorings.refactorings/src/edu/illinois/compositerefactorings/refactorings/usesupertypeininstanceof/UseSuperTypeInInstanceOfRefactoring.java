@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,6 +59,8 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextEditBasedChange;
+
+import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
 
 @SuppressWarnings("restriction")
 public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
@@ -247,14 +250,15 @@ public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
 					JavaPlugin.log(exception);
 				}
 				final String name= project != null ? project.getElementName() : null;
-				final String description= Messages.format(RefactoringCoreMessages.UseSuperTypeProcessor_descriptor_description_short,
+				final String description= MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description,
+						BasicElementLabels.getJavaElementName(fSubType.getElementName()),
 						BasicElementLabels.getJavaElementName(fSuperType.getElementName()));
-				final String header= Messages.format(
-						RefactoringCoreMessages.UseSuperTypeProcessor_descriptor_description,
-						new String[] { JavaElementLabels.getElementLabel(fSuperType, JavaElementLabels.ALL_FULLY_QUALIFIED),
-								JavaElementLabels.getElementLabel(fSubType, JavaElementLabels.ALL_FULLY_QUALIFIED) });
+				final String header= MessageFormat.format(
+						CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description,
+						JavaElementLabels.getElementLabel(fSuperType, JavaElementLabels.ALL_FULLY_QUALIFIED),
+						JavaElementLabels.getElementLabel(fSubType, JavaElementLabels.ALL_FULLY_QUALIFIED));
 				final JDTRefactoringDescriptorComment comment= new JDTRefactoringDescriptorComment(name, this, header);
-				comment.addSetting(Messages.format(RefactoringCoreMessages.UseSuperTypeProcessor_refactored_element_pattern,
+				comment.addSetting(MessageFormat.format(RefactoringCoreMessages.UseSuperTypeProcessor_refactored_element_pattern,
 						JavaElementLabels.getElementLabel(fSuperType, JavaElementLabels.ALL_FULLY_QUALIFIED)));
 				final UseSupertypeDescriptor descriptor= RefactoringSignatureDescriptorFactory.createUseSupertypeDescriptor();
 				descriptor.setProject(name);
@@ -263,7 +267,7 @@ public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
 				descriptor.setFlags(flags);
 				descriptor.setSubtype(getSubType());
 				descriptor.setSupertype(getSuperType());
-				return new DynamicValidationRefactoringChange(descriptor, RefactoringCoreMessages.UseSupertypeWherePossibleRefactoring_name, fChangeManager.getAllChanges());
+				return new DynamicValidationRefactoringChange(descriptor, description, fChangeManager.getAllChanges());
 			}
 			monitor.worked(1);
 		} finally {

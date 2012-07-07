@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.steps;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 
+import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
 import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSupertypeInInstanceOfDescriptor;
 
 public class ReplaceTypeBySupertypeInInstanceOf extends UseSuperTypeWherePossible {
@@ -34,7 +36,7 @@ public class ReplaceTypeBySupertypeInInstanceOf extends UseSuperTypeWherePossibl
 		List<IType> supertypes= getClosestSupertypes(getJavaProject(), type);
 		for (IType supertype : supertypes) {
 			UseSupertypeInInstanceOfDescriptor descriptor= new UseSupertypeInInstanceOfDescriptor();
-			String description= String.format("Replace type '%s' by super type '%s' in instanceof expressions", type.getElementName(), supertype.getElementName());
+			String description= MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, type.getElementName(), supertype.getElementName());
 			descriptor.setDescription(description);
 			descriptor.setProject(getJavaProject().getElementName());
 			descriptor.setSubtype(type);
