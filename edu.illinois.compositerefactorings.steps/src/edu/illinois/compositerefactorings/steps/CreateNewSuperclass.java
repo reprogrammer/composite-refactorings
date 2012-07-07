@@ -8,6 +8,7 @@
 
 package edu.illinois.compositerefactorings.steps;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -25,6 +26,8 @@ import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.jdt.ui.text.java.correction.ASTRewriteCorrectionProposal;
 import org.eclipse.swt.graphics.Image;
+
+import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
 
 @SuppressWarnings("restriction")
 public class CreateNewSuperclass extends CompositeRefactoringStep {
@@ -61,7 +64,7 @@ public class CreateNewSuperclass extends CompositeRefactoringStep {
 		ASTNode node= typeDeclaration.getParent();
 		AST ast= node.getAST();
 		ASTRewrite rewrite= ASTRewrite.create(ast);
-		String label= String.format("Create a new super type for '%s' in '%s'", typeDeclaration.getName(), getCompilationUnit().getElementName());
+		String label= MessageFormat.format(CompositeRefactoringsMessages.CreateNewSuperclass_description, typeDeclaration.getName(), getCompilationUnit().getElementName());
 		Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
 		ASTRewriteCorrectionProposal proposal= new ASTRewriteCorrectionProposal(label, getCompilationUnit(), rewrite, 0, image);
 		TypeDeclaration newSuperclass= ast.newTypeDeclaration();

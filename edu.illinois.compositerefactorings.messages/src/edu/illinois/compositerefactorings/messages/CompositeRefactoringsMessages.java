@@ -18,6 +18,8 @@ public class CompositeRefactoringsMessages extends NLS {
 
 	public static String ReplaceTypeBySupertypeInVariableDeclarations_description;
 
+	public static String CreateNewSuperclass_description;
+
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, CompositeRefactoringsMessages.class);
