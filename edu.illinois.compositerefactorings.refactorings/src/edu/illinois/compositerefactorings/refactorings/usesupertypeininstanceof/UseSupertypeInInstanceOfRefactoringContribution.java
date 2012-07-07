@@ -21,8 +21,8 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 /**
  * Refactoring contribution for the use supertype in instanceof expressions refactoring.
  * 
- * @since 3.2
  */
+@SuppressWarnings("restriction")
 public final class UseSupertypeInInstanceOfRefactoringContribution extends JavaRefactoringContribution {
 
 	/**
@@ -30,6 +30,7 @@ public final class UseSupertypeInInstanceOfRefactoringContribution extends JavaR
 	 */
 	@Override
 	public final Refactoring createRefactoring(JavaRefactoringDescriptor descriptor, RefactoringStatus status) throws CoreException {
+		@SuppressWarnings("unchecked")
 		JavaRefactoringArguments arguments= new JavaRefactoringArguments(descriptor.getProject(), retrieveArgumentMap(descriptor));
 		return new UseSuperTypeInInstanceOfRefactoring(arguments, status);
 	}
@@ -39,6 +40,7 @@ public final class UseSupertypeInInstanceOfRefactoringContribution extends JavaR
 		return new UseSupertypeInInstanceOfDescriptor();
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public RefactoringDescriptor createDescriptor(String id, String project, String description, String comment, Map arguments, int flags) {
 		return new UseSupertypeInInstanceOfDescriptor(project, description, comment, arguments, flags);

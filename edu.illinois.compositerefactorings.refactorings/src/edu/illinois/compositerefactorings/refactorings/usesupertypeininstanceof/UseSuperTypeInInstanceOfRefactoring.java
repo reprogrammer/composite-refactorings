@@ -72,9 +72,6 @@ public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
 	 */
 	private TextChangeManager fChangeManager;
 
-	/** The number of files affected by the last change generation */
-	private int fChanges= 0;
-
 	/** The subtype to replace */
 	private IType fSubType;
 
@@ -203,7 +200,6 @@ public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
 		if (result.hasFatalError()) {
 			return result;
 		}
-		int ticksPerCU= references.length == 0 ? 0 : 70 / references.length;
 		for (int i= 0; i < references.length; ++i) {
 			SearchResultGroup group= references[i];
 			SearchMatch[] searchResults= group.getSearchResults();
@@ -236,12 +232,10 @@ public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
 	public final Change createChange(final IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		Assert.isNotNull(monitor);
 		try {
-			fChanges= 0;
 			monitor.beginTask("", 1); //$NON-NLS-1$
 			monitor.setTaskName(RefactoringCoreMessages.ExtractInterfaceProcessor_creating);
 			final TextEditBasedChange[] changes= fChangeManager.getAllChanges();
 			if (changes != null && changes.length != 0) {
-				fChanges= changes.length;
 				IJavaProject project= null;
 				if (!fSubType.isBinary())
 					project= fSubType.getJavaProject();

@@ -31,10 +31,9 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
  * Note: this class is not intended to be instantiated by clients.
  * </p>
  * 
- * @since 1.1
- * 
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
+@SuppressWarnings("restriction")
 public final class UseSupertypeInInstanceOfDescriptor extends JavaRefactoringDescriptor {
 
 	/**
@@ -70,9 +69,8 @@ public final class UseSupertypeInInstanceOfDescriptor extends JavaRefactoringDes
 	 * 
 	 * @throws IllegalArgumentException if the argument map contains invalid keys/values
 	 * 
-	 * @since 1.2
 	 */
-	public UseSupertypeInInstanceOfDescriptor(String project, String description, String comment, Map arguments, int flags) {
+	public UseSupertypeInInstanceOfDescriptor(String project, String description, String comment, Map<String, String> arguments, int flags) {
 		super(ID, project, description, comment, arguments, flags);
 		fSubType= (IType)JavaRefactoringDescriptorUtil.getJavaElement(arguments, ATTRIBUTE_INPUT, project);
 		fSupertype= (IType)JavaRefactoringDescriptorUtil.getJavaElement(arguments, JavaRefactoringDescriptorUtil.getAttributeName(ATTRIBUTE_ELEMENT, 1), project);
