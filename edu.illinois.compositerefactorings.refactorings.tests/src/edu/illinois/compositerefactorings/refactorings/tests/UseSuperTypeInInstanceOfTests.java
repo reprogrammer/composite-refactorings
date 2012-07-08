@@ -35,7 +35,7 @@ public class UseSuperTypeInInstanceOfTests extends RefactoringTest {
 
 	private static final Class<UseSuperTypeInInstanceOfTests> clazz= UseSuperTypeInInstanceOfTests.class;
 
-	private static final String REFACTORING_PATH= "UseSupertypeInInstanceOf/";
+	private static final String REFACTORING_PATH= "UseSuperTypeInInstanceOf/";
 
 	public UseSuperTypeInInstanceOfTests(String name) {
 		super(name);
