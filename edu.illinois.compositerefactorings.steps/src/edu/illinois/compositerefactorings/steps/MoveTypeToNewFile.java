@@ -50,6 +50,7 @@ public class MoveTypeToNewFile extends RefactoringBasedStep {
 		}
 
 		if (typeDeclaration != null) {
+			// See http://wiki.eclipse.org/JDT/FAQ#How_to_go_from_one_of_IBinding.2C_IJavaElement.2C_ASTNode_to_another.3F
 			ITypeBinding typeBinding= typeDeclaration.resolveBinding();
 			IType type= (IType)typeBinding.getJavaElement();
 			inputs.add(type);
@@ -59,7 +60,7 @@ public class MoveTypeToNewFile extends RefactoringBasedStep {
 	}
 
 	@Override
-	protected Collection<RefactoringDescriptor> getDescriptors(IJavaElement input) throws CoreException {
+	protected Collection<RefactoringDescriptor> getDescriptors(Object input) throws CoreException {
 		IType type= (IType)input;
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
 		String description= MessageFormat.format(CompositeRefactoringsMessages.MoveTypeToNewFile_description, type.getElementName());

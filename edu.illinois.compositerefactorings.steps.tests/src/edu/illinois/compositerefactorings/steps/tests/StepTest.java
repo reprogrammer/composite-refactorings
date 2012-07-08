@@ -258,4 +258,29 @@ public class StepTest {
 		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, "C", "Object"));
 	}
 
+	@Test
+	public void testAddMethodParameterForExpression1() throws Exception {
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+		StringBuffer buf= new StringBuffer();
+		buf.append("public class C {\n");
+		buf.append("    \n");
+		buf.append("    int m1() {\n");
+		buf.append("        return m2();\n");
+		buf.append("    }\n");
+		buf.append("    \n");
+		buf.append("    int m2() {\n");
+		buf.append("        return 1 + 2;\n");
+		buf.append("    }\n");
+		buf.append("\n");
+		buf.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+
+		int offset= buf.toString().indexOf("return 1") + "return ".length();
+		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
+
+		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
+		StepTestUtilities.assertCorrectLabels(proposals);
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.AddMethodParameterForExpression_description, "m2"));
+	}
+
 }

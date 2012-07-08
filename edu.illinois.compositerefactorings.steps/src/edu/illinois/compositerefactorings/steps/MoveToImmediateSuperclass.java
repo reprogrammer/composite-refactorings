@@ -96,7 +96,7 @@ public class MoveToImmediateSuperclass extends RefactoringBasedStep {
 	}
 
 	@Override
-	protected Collection<RefactoringDescriptor> getDescriptors(IJavaElement input) throws CoreException {
+	protected Collection<RefactoringDescriptor> getDescriptors(Object input) throws CoreException {
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
 		IMember member= (IMember)input;
 		IType declaringType= member.getDeclaringType();

@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
@@ -37,8 +35,8 @@ public class CreateNewSuperclass extends CompositeRefactoringStep {
 	}
 
 	@Override
-	protected Collection<? extends IJavaElement> getInputs() {
-		Collection<IType> inputs= new ArrayList<IType>();
+	protected Collection<? extends TypeDeclaration> getInputs() {
+		Collection<TypeDeclaration> inputs= new ArrayList<TypeDeclaration>();
 		TypeDeclaration typeDeclaration= null;
 
 		if (context.getCoveredNode() instanceof TypeDeclaration) {
@@ -50,17 +48,15 @@ public class CreateNewSuperclass extends CompositeRefactoringStep {
 		}
 
 		if (typeDeclaration != null) {
-			IType type= (IType)typeDeclaration.resolveBinding().getJavaElement();
-			inputs.add(type);
+			inputs.add(typeDeclaration);
 		}
 
 		return inputs;
 	}
 
 	@Override
-	public Collection<ASTRewriteCorrectionProposal> getProposals(IJavaElement input) throws CoreException {
-		IType type= (IType)input;
-		TypeDeclaration typeDeclaration= (TypeDeclaration)((CompilationUnit)coveringNode.getRoot()).findDeclaringNode(type.getKey());
+	public Collection<ASTRewriteCorrectionProposal> getProposals(Object input) throws CoreException {
+		TypeDeclaration typeDeclaration= (TypeDeclaration)input;
 		ASTNode node= typeDeclaration.getParent();
 		AST ast= node.getAST();
 		ASTRewrite rewrite= ASTRewrite.create(ast);
@@ -68,7 +64,7 @@ public class CreateNewSuperclass extends CompositeRefactoringStep {
 		Image image= JavaPluginImages.get(JavaPluginImages.IMG_MISC_PUBLIC);
 		ASTRewriteCorrectionProposal proposal= new ASTRewriteCorrectionProposal(label, getCompilationUnit(), rewrite, 0, image);
 		TypeDeclaration newSuperclass= ast.newTypeDeclaration();
-		newSuperclass.setName(ast.newSimpleName("Super" + type.getElementName()));
+		newSuperclass.setName(ast.newSimpleName("Super" + typeDeclaration.getName()));
 		ListRewrite listRewrite= rewrite.getListRewrite(node, CompilationUnit.TYPES_PROPERTY);
 		listRewrite.insertLast(newSuperclass, null);
 		rewrite.set(newSuperclass, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, typeDeclaration.getStructuralProperty(TypeDeclaration.SUPERCLASS_TYPE_PROPERTY), null);

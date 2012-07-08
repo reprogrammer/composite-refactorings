@@ -13,7 +13,6 @@ import java.util.Collection;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
@@ -41,17 +40,17 @@ public abstract class CompositeRefactoringStep {
 		return getCompilationUnit().getJavaProject();
 	}
 
-	protected abstract Collection<? extends IJavaElement> getInputs();
+	protected abstract Collection<?> getInputs();
 
 	public boolean hasInputs() {
 		return !getInputs().isEmpty();
 	}
 
-	protected abstract Collection<? extends ICommandAccess> getProposals(IJavaElement input) throws CoreException;
+	protected abstract Collection<? extends ICommandAccess> getProposals(Object input) throws CoreException;
 
 	public Collection<? extends ICommandAccess> getProposals() throws CoreException {
 		Collection<ICommandAccess> proposals= new ArrayList<ICommandAccess>();
-		for (IJavaElement input : getInputs()) {
+		for (Object input : getInputs()) {
 			proposals.addAll(getProposals(input));
 		}
 		return proposals;

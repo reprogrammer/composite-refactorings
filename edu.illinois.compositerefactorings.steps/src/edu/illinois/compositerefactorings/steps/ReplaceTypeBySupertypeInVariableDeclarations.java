@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.refactoring.descriptors.UseSupertypeDescriptor;
@@ -30,7 +29,7 @@ public class ReplaceTypeBySupertypeInVariableDeclarations extends UseSuperTypeWh
 	}
 
 	@Override
-	protected Collection<RefactoringDescriptor> getDescriptors(IJavaElement input) throws CoreException {
+	protected Collection<RefactoringDescriptor> getDescriptors(Object input) throws CoreException {
 		IType type= (IType)input;
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
 		List<IType> supertypes= getClosestSupertypes(getJavaProject(), type);
