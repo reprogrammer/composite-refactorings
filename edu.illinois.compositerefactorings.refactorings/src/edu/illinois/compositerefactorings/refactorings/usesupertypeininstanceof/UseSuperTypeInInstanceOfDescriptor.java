@@ -20,7 +20,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringCore;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
- * Refactoring descriptor for the use supertype in instanceof expressions refactoring.
+ * Refactoring descriptor for the use super type in instanceof expressions refactoring.
  * <p>
  * An instance of this refactoring descriptor may be obtained by calling
  * {@link RefactoringContribution#createDescriptor()} on a refactoring contribution requested by
@@ -34,7 +34,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
  * @noinstantiate This class is not intended to be instantiated by clients.
  */
 @SuppressWarnings("restriction")
-public final class UseSupertypeInInstanceOfDescriptor extends JavaRefactoringDescriptor {
+public final class UseSuperTypeInInstanceOfDescriptor extends JavaRefactoringDescriptor {
 
 	/**
 	 * This ID should match the of the refactoring contribution used in the corresponding extension.
@@ -50,7 +50,7 @@ public final class UseSupertypeInInstanceOfDescriptor extends JavaRefactoringDes
 	/**
 	 * Creates a new refactoring descriptor.
 	 */
-	public UseSupertypeInInstanceOfDescriptor() {
+	public UseSuperTypeInInstanceOfDescriptor() {
 		super(ID);
 	}
 
@@ -70,7 +70,7 @@ public final class UseSupertypeInInstanceOfDescriptor extends JavaRefactoringDes
 	 * @throws IllegalArgumentException if the argument map contains invalid keys/values
 	 * 
 	 */
-	public UseSupertypeInInstanceOfDescriptor(String project, String description, String comment, Map<String, String> arguments, int flags) {
+	public UseSuperTypeInInstanceOfDescriptor(String project, String description, String comment, Map<String, String> arguments, int flags) {
 		super(ID, project, description, comment, arguments, flags);
 		fSubType= (IType)JavaRefactoringDescriptorUtil.getJavaElement(arguments, ATTRIBUTE_INPUT, project);
 		fSupertype= (IType)JavaRefactoringDescriptorUtil.getJavaElement(arguments, JavaRefactoringDescriptorUtil.getAttributeName(ATTRIBUTE_ELEMENT, 1), project);

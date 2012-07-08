@@ -20,7 +20,7 @@ import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 
 import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
-import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSupertypeInInstanceOfDescriptor;
+import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSuperTypeInInstanceOfDescriptor;
 
 public class ReplaceTypeBySupertypeInInstanceOf extends UseSuperTypeWherePossible {
 
@@ -34,7 +34,7 @@ public class ReplaceTypeBySupertypeInInstanceOf extends UseSuperTypeWherePossibl
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
 		List<IType> supertypes= getClosestSupertypes(getJavaProject(), type);
 		for (IType supertype : supertypes) {
-			UseSupertypeInInstanceOfDescriptor descriptor= new UseSupertypeInInstanceOfDescriptor();
+			UseSuperTypeInInstanceOfDescriptor descriptor= new UseSuperTypeInInstanceOfDescriptor();
 			String description= MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInInstanceOf_description, type.getElementName(), supertype.getElementName());
 			descriptor.setDescription(description);
 			descriptor.setProject(getJavaProject().getElementName());

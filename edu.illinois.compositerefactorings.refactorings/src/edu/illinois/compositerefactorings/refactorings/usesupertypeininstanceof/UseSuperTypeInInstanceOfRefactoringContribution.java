@@ -19,11 +19,11 @@ import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
- * Refactoring contribution for the use supertype in instanceof expressions refactoring.
+ * Refactoring contribution for the use super type in instanceof expressions refactoring.
  * 
  */
 @SuppressWarnings("restriction")
-public final class UseSupertypeInInstanceOfRefactoringContribution extends JavaRefactoringContribution {
+public final class UseSuperTypeInInstanceOfRefactoringContribution extends JavaRefactoringContribution {
 
 	/**
 	 * {@inheritDoc}
@@ -37,12 +37,12 @@ public final class UseSupertypeInInstanceOfRefactoringContribution extends JavaR
 
 	@Override
 	public RefactoringDescriptor createDescriptor() {
-		return new UseSupertypeInInstanceOfDescriptor();
+		return new UseSuperTypeInInstanceOfDescriptor();
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public RefactoringDescriptor createDescriptor(String id, String project, String description, String comment, Map arguments, int flags) {
-		return new UseSupertypeInInstanceOfDescriptor(project, description, comment, arguments, flags);
+		return new UseSuperTypeInInstanceOfDescriptor(project, description, comment, arguments, flags);
 	}
 }

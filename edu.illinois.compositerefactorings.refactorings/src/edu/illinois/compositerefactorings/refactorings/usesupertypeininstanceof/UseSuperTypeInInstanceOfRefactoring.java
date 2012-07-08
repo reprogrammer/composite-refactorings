@@ -91,7 +91,7 @@ public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
 		if (handle != null) {
 			final IJavaElement element= JavaRefactoringDescriptorUtil.handleToElement(extended.getProject(), handle, false);
 			if (element == null || !element.exists() || element.getElementType() != IJavaElement.TYPE)
-				return JavaRefactoringDescriptorUtil.createInputFatalStatus(element, getName(), UseSupertypeInInstanceOfDescriptor.ID);
+				return JavaRefactoringDescriptorUtil.createInputFatalStatus(element, getName(), UseSuperTypeInInstanceOfDescriptor.ID);
 			else
 				fSubType= (IType)element;
 		} else
@@ -100,7 +100,7 @@ public class UseSuperTypeInInstanceOfRefactoring extends Refactoring {
 		if (handle != null) {
 			final IJavaElement element= JavaRefactoringDescriptorUtil.handleToElement(extended.getProject(), handle, false);
 			if (element == null || !element.exists() || element.getElementType() != IJavaElement.TYPE)
-				return JavaRefactoringDescriptorUtil.createInputFatalStatus(element, getName(), UseSupertypeInInstanceOfDescriptor.ID);
+				return JavaRefactoringDescriptorUtil.createInputFatalStatus(element, getName(), UseSuperTypeInInstanceOfDescriptor.ID);
 			else
 				fSuperType= (IType)element;
 		} else

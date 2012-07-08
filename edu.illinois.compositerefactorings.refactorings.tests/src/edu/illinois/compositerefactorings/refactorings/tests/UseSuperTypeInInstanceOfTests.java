@@ -28,7 +28,7 @@ import org.eclipse.jdt.ui.tests.refactoring.RefactoringTestSetup;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
-import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSupertypeInInstanceOfDescriptor;
+import edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSuperTypeInInstanceOfDescriptor;
 
 @SuppressWarnings("restriction")
 public class UseSuperTypeInInstanceOfTests extends RefactoringTest {
@@ -94,7 +94,7 @@ public class UseSuperTypeInInstanceOfTests extends RefactoringTest {
 
 		}
 		final IType superType= subType.getJavaProject().findType(superTypeFullName, (IProgressMonitor)null);
-		final UseSupertypeInInstanceOfDescriptor descriptor= new UseSupertypeInInstanceOfDescriptor();
+		final UseSuperTypeInInstanceOfDescriptor descriptor= new UseSuperTypeInInstanceOfDescriptor();
 		descriptor.setSubtype(subType);
 		descriptor.setSupertype(superType);
 		final RefactoringStatus status= new RefactoringStatus();
