@@ -121,4 +121,8 @@ public class CreateNewTopLevelSuperClassTests extends RefactoringTest {
 		validatePassingTest("C", Arrays.asList("C"), "D");
 	}
 
+	public void test1() throws Exception {
+		validatePassingTest("C", Arrays.asList("C", "D"), "E");
+	}
+
 }
