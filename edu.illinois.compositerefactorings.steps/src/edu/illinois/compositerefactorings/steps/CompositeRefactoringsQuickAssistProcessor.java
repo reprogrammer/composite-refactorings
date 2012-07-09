@@ -30,7 +30,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 					new MoveTypeToNewFile(context, coveringNode, false).hasInputs() ||
 					new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).hasInputs() ||
 					new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).hasInputs() ||
-					new AddMethodParameterForExpression(context, coveringNode, false).hasInputs();
+					new AddMethodParameterForExpression(context, coveringNode, false).hasInputs() ||
+					new CreateNewTopLevelSuperClass(context, coveringNode, false).hasInputs();
 		}
 		return false;
 	}
@@ -46,6 +47,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			proposals.addAll(new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).getProposals());
 			proposals.addAll(new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).getProposals());
 			proposals.addAll(new AddMethodParameterForExpression(context, coveringNode, false).getProposals());
+			proposals.addAll(new CreateNewTopLevelSuperClass(context, coveringNode, false).getProposals());
 			return proposals.toArray(new IJavaCompletionProposal[proposals.size()]);
 		}
 		return null;

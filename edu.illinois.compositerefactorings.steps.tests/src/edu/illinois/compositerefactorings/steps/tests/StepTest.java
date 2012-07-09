@@ -110,6 +110,25 @@ public class StepTest {
 	}
 
 	@Test
+	public void testCreateNewTopLevelSuperclass1() throws Exception {
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+		StringBuffer buf= new StringBuffer();
+		buf.append("package test1;\n");
+		buf.append("public class C {\n");
+		buf.append("    public void m() {\n");
+		buf.append("    }\n");
+		buf.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+
+		int offset= buf.toString().indexOf("C");
+		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
+		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
+
+		StepTestUtilities.assertCorrectLabels(proposals);
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_description, "C"));
+	}
+
+	@Test
 	public void testMoveToImmediateSuperclass1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
 		StringBuffer buf= new StringBuffer();
