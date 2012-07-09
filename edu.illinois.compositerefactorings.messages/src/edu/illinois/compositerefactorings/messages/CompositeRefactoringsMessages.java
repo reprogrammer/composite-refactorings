@@ -20,6 +20,16 @@ public class CompositeRefactoringsMessages extends NLS {
 
 	public static String CreateNewSuperclass_description;
 
+	public static String CreateNewTopLevelSuperClass_description;
+
+	public static String CreateNewTopLevelSuperClass_comment_new_super_class;
+
+	public static String CreateNewTopLevelSuperClass_name;
+
+	public static String CreateNewTopLevelSuperClass_no_super_class_name;
+
+	public static String CreateNewTopLevelSuperClass_no_type;
+
 	public static String MoveToImmediateSuperclass_description;
 
 	public static String MoveTypeToNewFile_description;
@@ -33,4 +43,5 @@ public class CompositeRefactoringsMessages extends NLS {
 
 	private CompositeRefactoringsMessages() {
 	}
+
 }

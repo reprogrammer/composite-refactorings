@@ -7,6 +7,10 @@
             class="edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof.UseSuperTypeInInstanceOfRefactoringContribution"
             id="edu.illinois.compositerefactorings.usesupertypeininstanceof">
       </contribution>
+      <contribution
+            class="edu.illinois.compositerefactorings.refactorings.createnewtoplevelsuperclass.CreateNewTopLevelSuperClassRefactoringContribution"
+            id="edu.illinois.compositerefactorings.createnewtoplevelsuperclass">
+      </contribution>
    </extension>
 
 </plugin>
