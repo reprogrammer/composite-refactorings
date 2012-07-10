@@ -24,7 +24,6 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.NodeFinder;
 import org.eclipse.jdt.core.dom.SimpleName;
@@ -35,11 +34,9 @@ import org.eclipse.jdt.internal.corext.refactoring.Checks;
 import org.eclipse.jdt.internal.corext.refactoring.JDTRefactoringDescriptorComment;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
-import org.eclipse.jdt.internal.corext.refactoring.ParameterInfo;
 import org.eclipse.jdt.internal.corext.refactoring.RefactoringCoreMessages;
 import org.eclipse.jdt.internal.corext.refactoring.changes.DynamicValidationRefactoringChange;
 import org.eclipse.jdt.internal.corext.refactoring.structure.CompilationUnitRewrite;
-import org.eclipse.jdt.internal.corext.refactoring.structure.ParameterObjectFactory;
 import org.eclipse.jdt.internal.corext.refactoring.util.ResourceUtil;
 import org.eclipse.jdt.internal.corext.refactoring.util.TextChangeManager;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
@@ -53,6 +50,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.resource.ResourceChange;
 
 import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
+import edu.illinois.compositerefactorings.refactorings.NewClassCreator;
 
 @SuppressWarnings("restriction")
 public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
@@ -71,8 +69,6 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 	private IType fType;
 
 	private String fClassName;
-
-	private ParameterObjectFactory fParameterObjectFactory;
 
 	private List<ResourceChange> fClassCreationChanges;
 
@@ -102,14 +98,6 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 
 	public final IType getType() {
 		return fType;
-	}
-
-	private ParameterObjectFactory getParameterObjectFactory() {
-		ParameterObjectFactory pof= new ParameterObjectFactory();
-		pof.setClassName(fClassName);
-		pof.setPackage(fType.getPackageFragment().getElementName());
-		pof.setVariables(new ArrayList<ParameterInfo>());
-		return pof;
 	}
 
 	private CompilationUnitRewrite getCachedCURewrite(ICompilationUnit unit) {
@@ -173,17 +161,19 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 			return result;
 		}
 
-		fParameterObjectFactory= getParameterObjectFactory();
-		fClassCreationChanges= fParameterObjectFactory.createTopLevelParameterObject((IPackageFragmentRoot)fType.getAncestor(IJavaElement.PACKAGE_FRAGMENT_ROOT));
-
 		fChangeManager= new TextChangeManager();
+
+		IPackageFragment packageFragment= fType.getPackageFragment();
+
 		CompilationUnitRewrite typeCURewrite= getCachedCURewrite(fType.getCompilationUnit());
-		typeCURewrite.getImportRewrite().addImport(fType.getPackageFragment().getElementName() + "." + fClassName);
+		typeCURewrite.getImportRewrite().addImport(packageFragment.getElementName() + "." + fClassName);
 		TypeDeclaration typeDeclaration= (TypeDeclaration)NodeFinder.perform(typeCURewrite.getRoot(), fType.getSourceRange());
 		SimpleName simpleName= typeDeclaration.getAST().newSimpleName(fClassName);
 		SimpleType simpleType= typeDeclaration.getAST().newSimpleType(simpleName);
 		typeCURewrite.getASTRewrite().set(typeDeclaration, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, simpleType, null);
 		createChangeAndDiscardRewrite(fType.getCompilationUnit());
+
+		fClassCreationChanges= new NewClassCreator(fClassName, packageFragment).createTopLevelParameterObject();
 
 		Checks.checkCompileErrorsInAffectedFile(result, fType.getResource());
 		if (result.hasFatalError()) {
