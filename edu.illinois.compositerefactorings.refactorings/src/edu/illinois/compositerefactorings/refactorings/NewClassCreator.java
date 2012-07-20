@@ -30,6 +30,7 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
@@ -55,9 +56,12 @@ public class NewClassCreator {
 
 	private IPackageFragment fPackageFragment;
 
-	public NewClassCreator(String fClassName, IPackageFragment fPackageFragment) {
+	private Type fSuperclassType;
+
+	public NewClassCreator(String fClassName, IPackageFragment fPackageFragment, Type fSuperclassType) {
 		this.fClassName= fClassName;
 		this.fPackageFragment= fPackageFragment;
+		this.fSuperclassType= fSuperclassType;
 	}
 
 	public String getClassName() {
@@ -88,6 +92,10 @@ public class NewClassCreator {
 			CompilationUnit root= cuRewrite.getRoot();
 			AST ast= cuRewrite.getAST();
 			ImportRewrite importRewrite= cuRewrite.getImportRewrite();
+
+			if (fSuperclassType != null) {
+				importRewrite.addImport(fSuperclassType.resolveBinding());
+			}
 
 			// retrieve&replace dummy type with real class
 			ListRewrite types= rewriter.getListRewrite(root, CompilationUnit.TYPES_PROPERTY);
@@ -123,6 +131,10 @@ public class NewClassCreator {
 		AST ast= cuRewrite.getAST();
 		TypeDeclaration typeDeclaration= ast.newTypeDeclaration();
 		typeDeclaration.setName(ast.newSimpleName(fClassName));
+		if (fSuperclassType != null) {
+			Type superclassASTNode= (Type)Type.copySubtree(typeDeclaration.getAST(), fSuperclassType);
+			typeDeclaration.setSuperclassType(superclassASTNode);
+		}
 		List<BodyDeclaration> body= typeDeclaration.bodyDeclarations();
 		MethodDeclaration constructor= createConstructor(declaringType, cuRewrite);
 		body.add(constructor);

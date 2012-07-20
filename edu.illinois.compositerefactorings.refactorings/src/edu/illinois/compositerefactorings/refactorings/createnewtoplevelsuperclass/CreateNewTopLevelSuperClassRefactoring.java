@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
@@ -173,7 +174,8 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 		typeCURewrite.getASTRewrite().set(typeDeclaration, TypeDeclaration.SUPERCLASS_TYPE_PROPERTY, simpleType, null);
 		createChangeAndDiscardRewrite(fType.getCompilationUnit());
 
-		fClassCreationChanges= new NewClassCreator(fClassName, packageFragment).createTopLevelParameterObject();
+		IType superclassType= fType.newSupertypeHierarchy(new NullProgressMonitor()).getSuperclass(fType);
+		fClassCreationChanges= new NewClassCreator(fClassName, packageFragment, typeDeclaration.getSuperclassType()).createTopLevelParameterObject();
 
 		Checks.checkCompileErrorsInAffectedFile(result, fType.getResource());
 		if (result.hasFatalError()) {
