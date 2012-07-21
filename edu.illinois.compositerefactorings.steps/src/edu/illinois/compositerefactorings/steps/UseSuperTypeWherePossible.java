@@ -36,17 +36,17 @@ public abstract class UseSuperTypeWherePossible extends RefactoringBasedStep {
 		List<IType> closestsSuperTypes= new LinkedList<IType>();
 		LinkedList<IType> remainingTypes= new LinkedList<IType>();
 		remainingTypes.add(type);
+		ITypeHierarchy typeHierarchy= type.newTypeHierarchy(project, new NullProgressMonitor());
 		while (!remainingTypes.isEmpty() && closestsSuperTypes.size() < MAX_NUMBER_OF_SUPERTYPES) {
 			IType currentType= remainingTypes.removeFirst();
 			if (currentType != type) {
 				closestsSuperTypes.add(currentType);
 			}
-			ITypeHierarchy currentTypeHierarchy= currentType.newTypeHierarchy(project, new NullProgressMonitor());
-			IType currentSupertype= currentTypeHierarchy.getSuperclass(currentType);
+			IType currentSupertype= typeHierarchy.getSuperclass(currentType);
 			if (currentSupertype != null) {
 				remainingTypes.addLast(currentSupertype);
 			}
-			remainingTypes.addAll(Arrays.asList(currentTypeHierarchy.getSuperInterfaces(currentType)));
+			remainingTypes.addAll(Arrays.asList(typeHierarchy.getSuperInterfaces(currentType)));
 		}
 		return closestsSuperTypes;
 	}
