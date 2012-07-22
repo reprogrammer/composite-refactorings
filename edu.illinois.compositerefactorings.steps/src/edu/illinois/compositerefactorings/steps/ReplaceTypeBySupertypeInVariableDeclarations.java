@@ -16,11 +16,11 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.refactoring.descriptors.UseSupertypeDescriptor;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 
 import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
+import edu.illinois.compositerefactorings.refactorings.usesupertypeinvariabledeclarations.UseSuperTypeInVariableDeclarationsDescriptor;
 
 public class ReplaceTypeBySupertypeInVariableDeclarations extends UseSuperTypeWherePossible {
 
@@ -34,11 +34,10 @@ public class ReplaceTypeBySupertypeInVariableDeclarations extends UseSuperTypeWh
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
 		List<IType> supertypes= getClosestSupertypes(getJavaProject(), type);
 		for (IType supertype : supertypes) {
-			UseSupertypeDescriptor descriptor= new UseSupertypeDescriptor();
+			UseSuperTypeInVariableDeclarationsDescriptor descriptor= new UseSuperTypeInVariableDeclarationsDescriptor();
 			String description= MessageFormat.format(CompositeRefactoringsMessages.ReplaceTypeBySupertypeInVariableDeclarations_description, type.getElementName(), supertype.getElementName());
 			descriptor.setDescription(description);
 			descriptor.setProject(getJavaProject().getElementName());
-			descriptor.setReplaceInstanceof(false);
 			descriptor.setSubtype(type);
 			descriptor.setSupertype(supertype);
 			descriptors.add(descriptor);

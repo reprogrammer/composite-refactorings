@@ -15,4 +15,5 @@ Require-Bundle: org.eclipse.ltk.core.refactoring;bundle-version="3.6.0",
  org.eclipse.ui.workbench;bundle-version="3.103.0",
  edu.illinois.compositerefactorings.messages;bundle-version="1.0.0"
 Export-Package: edu.illinois.compositerefactorings.refactorings.createnewtoplevelsuperclass,
- edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof
+ edu.illinois.compositerefactorings.refactorings.usesupertypeininstanceof,
+ edu.illinois.compositerefactorings.refactorings.usesupertypeinvariabledeclarations
