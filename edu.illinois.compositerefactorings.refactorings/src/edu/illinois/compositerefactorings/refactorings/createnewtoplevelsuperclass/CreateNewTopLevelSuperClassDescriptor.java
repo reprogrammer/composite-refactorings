@@ -26,8 +26,6 @@ public final class CreateNewTopLevelSuperClassDescriptor extends JavaRefactoring
 	 */
 	public static final String ID= "edu.illinois.compositerefactorings.createnewtoplevelsuperclass";
 
-	public static final String CLASS_NAME= "className"; //$NON-NLS-1$
-
 	/** The subtype attribute */
 	private IType fType= null;
 
@@ -40,7 +38,7 @@ public final class CreateNewTopLevelSuperClassDescriptor extends JavaRefactoring
 	public CreateNewTopLevelSuperClassDescriptor(String project, String description, String comment, Map<String, String> arguments, int flags) {
 		super(ID, project, description, comment, arguments, flags);
 		fType= (IType)JavaRefactoringDescriptorUtil.getJavaElement(arguments, ATTRIBUTE_INPUT, project);
-		fClassName= JavaRefactoringDescriptorUtil.getString(arguments, CLASS_NAME);
+		fClassName= JavaRefactoringDescriptorUtil.getString(arguments, ATTRIBUTE_NAME);
 	}
 
 	public void setClassName(String className) {
@@ -56,7 +54,7 @@ public final class CreateNewTopLevelSuperClassDescriptor extends JavaRefactoring
 	protected void populateArgumentMap() {
 		super.populateArgumentMap();
 		JavaRefactoringDescriptorUtil.setJavaElement(fArguments, ATTRIBUTE_INPUT, getProject(), fType);
-		JavaRefactoringDescriptorUtil.setString(fArguments, CLASS_NAME, fClassName);
+		JavaRefactoringDescriptorUtil.setString(fArguments, ATTRIBUTE_NAME, fClassName);
 	}
 
 	public RefactoringStatus validateDescriptor() {

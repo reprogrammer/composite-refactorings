@@ -63,7 +63,7 @@ public class CreateNewTopLevelSuperClass extends RefactoringBasedStep {
 		String description= MessageFormat.format(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_description, type.getElementName());
 		Map<String, String> arguments= new HashMap<String, String>();
 		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(getJavaProject().getElementName(), type));
-		arguments.put(CreateNewTopLevelSuperClassDescriptor.CLASS_NAME, "Super" + type.getElementName());
+		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_NAME, "Super" + type.getElementName());
 		CreateNewTopLevelSuperClassDescriptor descriptor= new CreateNewTopLevelSuperClassDescriptor(getJavaProject().getElementName(), description, null, arguments,
 				RefactoringDescriptor.STRUCTURAL_CHANGE | RefactoringDescriptor.MULTI_CHANGE);
 		descriptors.add(descriptor);

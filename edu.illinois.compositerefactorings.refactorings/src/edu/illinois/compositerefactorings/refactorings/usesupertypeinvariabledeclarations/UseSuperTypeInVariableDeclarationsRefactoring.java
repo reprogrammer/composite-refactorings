@@ -8,15 +8,12 @@
 
 package edu.illinois.compositerefactorings.refactorings.usesupertypeinvariabledeclarations;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.refactoring.descriptors.UseSupertypeDescriptor;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
@@ -26,9 +23,8 @@ import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringChangeDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
-import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
-import org.eclipse.ltk.core.refactoring.participants.ResourceChangeChecker;
-import org.eclipse.ltk.core.refactoring.participants.ValidateEditChecker;
+
+import edu.illinois.compositerefactorings.refactorings.ChangeUtils;
 
 @SuppressWarnings("restriction")
 public class UseSuperTypeInVariableDeclarationsRefactoring extends Refactoring {
@@ -57,35 +53,9 @@ public class UseSuperTypeInVariableDeclarationsRefactoring extends Refactoring {
 		return fUseSuperTypeProcessor.checkInitialConditions(pm);
 	}
 
-	// See org.eclipse.ltk.core.refactoring.participants.ProcessorBasedRefactoring.createCheckConditionsContext()
-	private CheckConditionsContext createCheckConditionsContext() throws CoreException {
-		CheckConditionsContext result= new CheckConditionsContext();
-		result.add(new ValidateEditChecker(getValidationContext()));
-		result.add(new ResourceChangeChecker());
-		return result;
-	}
-
 	@Override
 	public RefactoringStatus checkFinalConditions(IProgressMonitor pm) throws CoreException, OperationCanceledException {
-		return fUseSuperTypeProcessor.checkFinalConditions(pm, createCheckConditionsContext());
-	}
-
-	private Change[] createChangesWithNullParents(Change[] changes) throws CoreException {
-		for (Change change : changes) {
-			try {
-				setParentToNull(change);
-			} catch (Exception e) {
-				throw new CoreException(new Status(Status.ERROR, null, "Failed to make a reflective call.", e));
-			}
-		}
-		return changes;
-	}
-
-	// See http://stackoverflow.com/a/880400/130224
-	private void setParentToNull(Change change) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-		Method method= Change.class.getDeclaredMethod("setParent", Change.class);
-		method.setAccessible(true);
-		method.invoke(change, new Object[] { null });
+		return fUseSuperTypeProcessor.checkFinalConditions(pm, ChangeUtils.createCheckConditionsContext(getValidationContext()));
 	}
 
 	@Override
@@ -101,7 +71,7 @@ public class UseSuperTypeInVariableDeclarationsRefactoring extends Refactoring {
 		arguments.remove("instanceof");
 		UseSuperTypeInVariableDeclarationsDescriptor newDescriptor= new UseSuperTypeInVariableDeclarationsDescriptor(useSuperTypeDescriptor.getProject(), useSuperTypeDescriptor.getDescription(),
 				useSuperTypeDescriptor.getComment(), arguments, useSuperTypeDescriptor.getFlags());
-		return new DynamicValidationRefactoringChange(newDescriptor, getName(), createChangesWithNullParents(useSuperTypeChange.getChildren()));
+		return new DynamicValidationRefactoringChange(newDescriptor, getName(), ChangeUtils.createChangesWithNullParents(useSuperTypeChange.getChildren()));
 	}
 
 }

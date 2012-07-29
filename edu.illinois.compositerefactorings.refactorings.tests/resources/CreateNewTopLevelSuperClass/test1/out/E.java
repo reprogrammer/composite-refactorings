@@ -1,11 +1,10 @@
 package p;
-/**
- * typecomment template
- */
+/** typecomment template*/
 public class E extends D {
 	/**
 	 * 
 	 */
 	public E() {
+		super();
 	}
 }
