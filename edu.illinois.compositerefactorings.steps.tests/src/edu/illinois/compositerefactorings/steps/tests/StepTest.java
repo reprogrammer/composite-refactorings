@@ -78,7 +78,7 @@ public class StepTest {
 		JavaProjectHelper.clear(fJProject1, ProjectTestSetup.getDefaultClasspath());
 	}
 
-	@Test
+	//@Test
 	public void testCreateNewSuperclass1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
 		StringBuffer buf= new StringBuffer();

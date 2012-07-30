@@ -25,8 +25,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 	public boolean hasAssists(IInvocationContext context) throws CoreException {
 		ASTNode coveringNode= context.getCoveringNode();
 		if (coveringNode != null) {
-			return new CreateNewSuperclass(context, coveringNode, false).hasInputs() ||
-					new MoveToImmediateSuperclass(context, coveringNode, false).hasInputs() ||
+			return //new CreateNewSuperclass(context, coveringNode, false).hasInputs() ||
+			new MoveToImmediateSuperclass(context, coveringNode, false).hasInputs() ||
 					new MoveTypeToNewFile(context, coveringNode, false).hasInputs() ||
 					new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).hasInputs() ||
 					new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).hasInputs() ||
@@ -41,7 +41,7 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 		ASTNode coveringNode= context.getCoveringNode();
 		if (coveringNode != null) {
 			ArrayList<ICommandAccess> proposals= new ArrayList<ICommandAccess>();
-			proposals.addAll(new CreateNewSuperclass(context, coveringNode, false).getProposals());
+//			proposals.addAll(new CreateNewSuperclass(context, coveringNode, false).getProposals());
 			proposals.addAll(new MoveToImmediateSuperclass(context, coveringNode, false).getProposals());
 			proposals.addAll(new MoveTypeToNewFile(context, coveringNode, false).getProposals());
 			proposals.addAll(new ReplaceTypeBySupertypeInVariableDeclarations(context, coveringNode, false).getProposals());
