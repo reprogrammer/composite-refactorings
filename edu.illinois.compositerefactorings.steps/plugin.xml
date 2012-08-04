@@ -9,5 +9,34 @@
             name="CompositeRefactoringsQuickAssistProcessor">
       </quickAssistProcessor>
    </extension>
+   
+   <!--
+     http://wiki.eclipse.org/Platform_Command_Framework
+     http://wiki.eclipse.org/Menu_Contributions 
+   -->
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any">
+         <command
+               commandId="edu.illinois.compositerefactorings.steps.createNewSuperclassCommandID"
+               label="Create New Superclass">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            id="edu.illinois.compositerefactorings.steps.createNewSuperclassCommandID"
+            name="Create New Superclass Command Name">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="edu.illinois.compositerefactorings.steps.CreateNewSuperclassCommandHandler"
+            commandId="edu.illinois.compositerefactorings.steps.createNewSuperclassCommandID">
+      </handler>
+   </extension>
 
 </plugin>

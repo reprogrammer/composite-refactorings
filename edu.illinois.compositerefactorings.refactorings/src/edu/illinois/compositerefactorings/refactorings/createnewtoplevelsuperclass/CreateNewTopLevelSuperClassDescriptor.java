@@ -21,15 +21,18 @@ import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages
 @SuppressWarnings("restriction")
 public final class CreateNewTopLevelSuperClassDescriptor extends JavaRefactoringDescriptor {
 
+	public static final String ATTRIBUTE_TYPES= "types";
+
 	/**
 	 * This ID should match the of the refactoring contribution used in the corresponding extension.
 	 */
 	public static final String ID= "edu.illinois.compositerefactorings.createnewtoplevelsuperclass";
 
-	/** The subtype attribute */
 	private IType fType= null;
 
-	private String fClassName= null;
+	private IType[] fSubTypes= null;
+
+	private String fNewClassName= null;
 
 	public CreateNewTopLevelSuperClassDescriptor() {
 		super(ID);
@@ -38,12 +41,13 @@ public final class CreateNewTopLevelSuperClassDescriptor extends JavaRefactoring
 	public CreateNewTopLevelSuperClassDescriptor(String project, String description, String comment, Map<String, String> arguments, int flags) {
 		super(ID, project, description, comment, arguments, flags);
 		fType= (IType)JavaRefactoringDescriptorUtil.getJavaElement(arguments, ATTRIBUTE_INPUT, project);
-		fClassName= JavaRefactoringDescriptorUtil.getString(arguments, ATTRIBUTE_NAME);
+		fSubTypes= (IType[])JavaRefactoringDescriptorUtil.getJavaElementArray(arguments, ATTRIBUTE_TYPES, ATTRIBUTE_ELEMENT, 1, project, IType.class);
+		fNewClassName= JavaRefactoringDescriptorUtil.getString(arguments, ATTRIBUTE_NAME);
 	}
 
-	public void setClassName(String className) {
-		Assert.isNotNull(className);
-		fClassName= className;
+	public void setNewClassName(String newClassName) {
+		Assert.isNotNull(newClassName);
+		fNewClassName= newClassName;
 	}
 
 	public void setType(final IType type) {
@@ -51,10 +55,17 @@ public final class CreateNewTopLevelSuperClassDescriptor extends JavaRefactoring
 		fType= type;
 	}
 
+	public void setSubTypes(final IType[] subTypes) {
+		Assert.isNotNull(subTypes);
+		Assert.isTrue(subTypes.length > 0);
+		fSubTypes= subTypes;
+	}
+
 	protected void populateArgumentMap() {
 		super.populateArgumentMap();
 		JavaRefactoringDescriptorUtil.setJavaElement(fArguments, ATTRIBUTE_INPUT, getProject(), fType);
-		JavaRefactoringDescriptorUtil.setString(fArguments, ATTRIBUTE_NAME, fClassName);
+		JavaRefactoringDescriptorUtil.setJavaElementArray(fArguments, ATTRIBUTE_TYPES, ATTRIBUTE_ELEMENT, getProject(), fSubTypes, 1);
+		JavaRefactoringDescriptorUtil.setString(fArguments, ATTRIBUTE_NAME, fNewClassName);
 	}
 
 	public RefactoringStatus validateDescriptor() {
@@ -62,7 +73,10 @@ public final class CreateNewTopLevelSuperClassDescriptor extends JavaRefactoring
 		if (fType == null) {
 			status.merge(RefactoringStatus.createFatalErrorStatus(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_no_type));
 		}
-		if (fClassName == null) {
+		if (fSubTypes == null || fSubTypes.length == 0) {
+			status.merge(RefactoringStatus.createFatalErrorStatus(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_no_type));
+		}
+		if (fNewClassName == null) {
 			status.merge(RefactoringStatus.createFatalErrorStatus(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_no_super_class_name));
 		}
 		return status;

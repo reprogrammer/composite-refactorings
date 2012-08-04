@@ -30,6 +30,18 @@ import edu.illinois.compositerefactorings.refactorings.ChangeUtils;
 @SuppressWarnings("restriction")
 public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 
+	private static final String ATTRIBUTE_EXTRACT= "extract";
+
+	private static final String ATTRIBUTE_DELETE= "delete";
+
+	private static final String ATTRIBUTE_ABSTRACT= "abstract";
+
+	private static final String ATTRIBUTE_REPLACE= "replace";
+
+	private static final String ATTRIBUTE_INSTANCEOF= "instanceof";
+
+	private static final String ATTRIBUTE_STUBS= "stubs";
+
 	private ExtractSupertypeProcessor fExtractSuperTypeProcessor;
 
 	public CreateNewTopLevelSuperClassRefactoring(JavaRefactoringArguments arguments, RefactoringStatus status) {
@@ -40,13 +52,21 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 		Map<String, String> argumentsMap= new HashMap<String, String>();
 		argumentsMap.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_NAME, arguments.getAttribute(JavaRefactoringDescriptorUtil.ATTRIBUTE_NAME));
 		argumentsMap.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, arguments.getAttribute(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT));
-		argumentsMap.put("stubs", String.valueOf(Boolean.FALSE));
-		argumentsMap.put("instanceof", String.valueOf(Boolean.FALSE));
-		argumentsMap.put("replace", String.valueOf(Boolean.FALSE));
-		argumentsMap.put("abstract", Integer.toString(0));
-		argumentsMap.put("delete", Integer.toString(0));
-		argumentsMap.put("extract", Integer.toString(0));
-		argumentsMap.put("types", Integer.toString(0));
+		argumentsMap.put(CreateNewTopLevelSuperClassDescriptor.ATTRIBUTE_TYPES, arguments.getAttribute(CreateNewTopLevelSuperClassDescriptor.ATTRIBUTE_TYPES));
+		for (int i= 1;; ++i) {
+			String ithElement= arguments.getAttribute(JavaRefactoringDescriptorUtil.ATTRIBUTE_ELEMENT + i);
+			if (ithElement != null) {
+				argumentsMap.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_ELEMENT + i, ithElement);
+			} else {
+				break;
+			}
+		}
+		argumentsMap.put(ATTRIBUTE_STUBS, String.valueOf(Boolean.FALSE));
+		argumentsMap.put(ATTRIBUTE_INSTANCEOF, String.valueOf(Boolean.FALSE));
+		argumentsMap.put(ATTRIBUTE_REPLACE, String.valueOf(Boolean.FALSE));
+		argumentsMap.put(ATTRIBUTE_ABSTRACT, Integer.toString(0));
+		argumentsMap.put(ATTRIBUTE_DELETE, Integer.toString(0));
+		argumentsMap.put(ATTRIBUTE_EXTRACT, Integer.toString(0));
 		return new JavaRefactoringArguments(arguments.getProject(), argumentsMap);
 	}
 
@@ -75,13 +95,12 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 		ExtractSuperclassDescriptor extractSuperTypeDescriptor= (ExtractSuperclassDescriptor)extractSuperTypeChangeDescriptor.getRefactoringDescriptor();
 		@SuppressWarnings("unchecked")
 		Map<String, String> arguments= new CreateNewTopLevelSuperClassRefactoringContribution().retrieveArgumentMap(extractSuperTypeDescriptor);
-		arguments.remove("stubs");
-		arguments.remove("instanceof");
-		arguments.remove("replace");
-		arguments.remove("abstract");
-		arguments.remove("delete");
-		arguments.remove("extract");
-		arguments.remove("types");
+		arguments.remove(ATTRIBUTE_STUBS);
+		arguments.remove(ATTRIBUTE_INSTANCEOF);
+		arguments.remove(ATTRIBUTE_REPLACE);
+		arguments.remove(ATTRIBUTE_ABSTRACT);
+		arguments.remove(ATTRIBUTE_DELETE);
+		arguments.remove(ATTRIBUTE_EXTRACT);
 		CreateNewTopLevelSuperClassDescriptor newDescriptor= new CreateNewTopLevelSuperClassDescriptor(extractSuperTypeDescriptor.getProject(), extractSuperTypeDescriptor.getDescription(),
 				extractSuperTypeDescriptor.getComment(), arguments, extractSuperTypeDescriptor.getFlags());
 		return new DynamicValidationRefactoringChange(newDescriptor, getName(), ChangeUtils.createChangesWithNullParents(extractSuperTypeChange.getChildren()));

@@ -10,6 +10,7 @@ package edu.illinois.compositerefactorings.refactorings.tests;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -87,19 +88,22 @@ public class CreateNewTopLevelSuperClassTests extends RefactoringTest {
 		return getType(createCUfromTestFile(pack, className), className);
 	}
 
-	private void validatePassingTest(String className, List<String> cuNames, String newSuperClassName) throws Exception {
-		final IType type= getClassFromTestFile(getPackageP(), className);
+	private void validatePassingTest(List<String> subclassNames, List<String> otherClassNames, String newSuperClassName) throws Exception {
 		final Map<String, ICompilationUnit> units= new HashMap<String, ICompilationUnit>();
-		for (String cuName : cuNames) {
-			if (cuName.equals(type.getCompilationUnit().findPrimaryType().getElementName())) {
-				units.put(cuName, type.getCompilationUnit());
-			} else {
-				units.put(cuName, createCUfromTestFile(type.getPackageFragment(), cuName));
-			}
+		List<IType> subtypes= new ArrayList<IType>();
+		for (String subclassName : subclassNames) {
+			IType subtype= getClassFromTestFile(getPackageP(), subclassName);
+			subtypes.add(subtype);
+			units.put(subclassName, subtype.getCompilationUnit());
+		}
+		IPackageFragment packageFragment= subtypes.get(0).getPackageFragment();
+		for (String className : otherClassNames) {
+			units.put(className, createCUfromTestFile(packageFragment, className));
 		}
 		final CreateNewTopLevelSuperClassDescriptor descriptor= new CreateNewTopLevelSuperClassDescriptor();
-		descriptor.setClassName(newSuperClassName);
-		descriptor.setType(type);
+		descriptor.setNewClassName(newSuperClassName);
+		descriptor.setType(subtypes.get(0));
+		descriptor.setSubTypes(subtypes.toArray(new IType[] {}));
 		final RefactoringStatus status= new RefactoringStatus();
 		final Refactoring refactoring= descriptor.createRefactoring(status);
 		assertTrue("status should be ok", status.isOK());
@@ -118,19 +122,27 @@ public class CreateNewTopLevelSuperClassTests extends RefactoringTest {
 	}
 
 	public void test0() throws Exception {
-		validatePassingTest("C", Arrays.asList("C"), "D");
+		validatePassingTest(Arrays.asList("C"), new ArrayList<String>(), "D");
 	}
 
 	public void test1() throws Exception {
-		validatePassingTest("C", Arrays.asList("C", "D"), "E");
+		validatePassingTest(Arrays.asList("C"), Arrays.asList("D"), "E");
 	}
 
 	public void test2() throws Exception {
-		validatePassingTest("C", Arrays.asList("C", "D"), "E");
+		validatePassingTest(Arrays.asList("C"), Arrays.asList("D"), "E");
 	}
 
 	public void test3() throws Exception {
-		validatePassingTest("C", Arrays.asList("C", "D"), "E");
+		validatePassingTest(Arrays.asList("C"), Arrays.asList("D"), "E");
+	}
+
+	public void test4() throws Exception {
+		validatePassingTest(Arrays.asList("C", "D"), new ArrayList<String>(), "E");
+	}
+
+	public void test5() throws Exception {
+		validatePassingTest(Arrays.asList("C", "D"), Arrays.asList("E"), "F");
 	}
 
 }
