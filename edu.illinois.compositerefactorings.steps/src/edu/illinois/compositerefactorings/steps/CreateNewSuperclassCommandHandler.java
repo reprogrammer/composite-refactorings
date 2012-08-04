@@ -29,7 +29,8 @@ import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil
 import org.eclipse.jdt.internal.corext.refactoring.util.JavaElementUtil;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
+import org.eclipse.ltk.core.refactoring.PerformRefactoringOperation;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -59,8 +60,8 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 			if (status.hasFatalError()) {
 				return null;
 			}
-			Change change= refactoring.createChange(monitor);
-			change.perform(monitor);
+			PerformRefactoringOperation operation= new PerformRefactoringOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
+			operation.run(monitor);
 		} catch (JavaModelException e) {
 			throw new ExecutionException("Unexpected selection", e);
 		} catch (CoreException e) {
