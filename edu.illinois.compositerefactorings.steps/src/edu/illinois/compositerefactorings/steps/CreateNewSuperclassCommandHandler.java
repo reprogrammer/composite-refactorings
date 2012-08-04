@@ -27,6 +27,8 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.internal.corext.refactoring.util.JavaElementUtil;
+import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ltk.core.refactoring.CheckConditionsOperation;
@@ -51,23 +53,20 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 			IProgressMonitor monitor= new NullProgressMonitor();
 			CreateNewTopLevelSuperClassDescriptor descriptor= createRefactoringDescriptor(selectedTypes);
 			Refactoring refactoring= descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
-			RefactoringStatus status= new RefactoringStatus();
-			status.merge(refactoring.checkInitialConditions(monitor));
-			if (status.hasFatalError()) {
-				return null;
-			}
-			status.merge(refactoring.checkFinalConditions(monitor));
-			if (status.hasFatalError()) {
-				return null;
-			}
 			PerformRefactoringOperation operation= new PerformRefactoringOperation(refactoring, CheckConditionsOperation.ALL_CONDITIONS);
 			operation.run(monitor);
+			JavaUI.openInEditor(findNewType(selectedTypes.get(0)));
 		} catch (JavaModelException e) {
 			throw new ExecutionException("Unexpected selection", e);
 		} catch (CoreException e) {
 			throw new ExecutionException("Refactoring object creation failure", e);
 		}
 		return null;
+	}
+
+	// See http://publib.boulder.ibm.com/infocenter/iadthelp/v6r0/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_open_editor.htm
+	private IType findNewType(IType firstSelectedType) {
+		return firstSelectedType.getPackageFragment().getCompilationUnit("Super" + firstSelectedType.getElementName() + JavaModelUtil.DEFAULT_CU_SUFFIX).findPrimaryType();
 	}
 
 	public static List<IType> getSelectedTypes(IStructuredSelection selection) throws JavaModelException {
