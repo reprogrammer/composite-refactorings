@@ -46,6 +46,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.internal.ui.refactoring.RefactoringStatusDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
@@ -79,28 +80,13 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		IEditorPart editorPart= HandlerUtil.getActiveEditor(event);
 		ISelection selection= HandlerUtil.getCurrentSelection(event);
 		try {
-			List<IType> selectedTypes;
-			if (selection instanceof ITextSelection) {
-				selectedTypes= getSelectedTypes(editorPart, (ITextSelection)selection);
-			} else if (selection instanceof IStructuredSelection) {
-				selectedTypes= getSelectedTypes((IStructuredSelection)selection);
-			} else {
-				throw new InvalidSelectionException("Unexpected kind of selection");
-			}
+			List<IType> selectedTypes= getSelectedTypes(editorPart, selection);
+			CreateNewTopLevelSuperClassRefactoring refactoring= createRefactoring(selectedTypes);
 			IProgressMonitor monitor= new NullProgressMonitor();
-			CreateNewTopLevelSuperClassDescriptor descriptor= createRefactoringDescriptor(selectedTypes);
-			CreateNewTopLevelSuperClassRefactoring refactoring= (CreateNewTopLevelSuperClassRefactoring)descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
-			List<IType> possibleTypes= Arrays.asList(refactoring.getCandidateTypes(monitor));
-			RefactoringStatus status= new RefactoringStatus();
-			status.merge(refactoring.checkInitialConditions(monitor));
-			status.merge(refactoring.checkFinalConditions(monitor));
-			if (!fullyQualifiedName(possibleTypes).containsAll(fullyQualifiedName(selectedTypes))) {
-				status.merge(RefactoringStatus.createErrorStatus("The selected types belong to different class hierarchies."));
-			}
+			RefactoringStatus status= checkRefactoring(selectedTypes, refactoring, monitor);
 			if (status.isOK() || choseToProceed(shell, status)) {
-				PerformRefactoringOperation operation= new PerformRefactoringOperation(refactoring, CheckConditionsOperation.INITIAL_CONDITONS);
-				operation.run(monitor);
-				JavaUI.openInEditor(findNewType(selectedTypes.get(0)));
+				performRefactoring(refactoring, monitor);
+				openNewSuperClass(selectedTypes);
 			}
 		} catch (JavaModelException e) {
 			throw new ExecutionException("Unexpected selection", e);
@@ -112,12 +98,56 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		return null;
 	}
 
+	private static void openNewSuperClass(List<IType> selectedTypes) throws JavaModelException, PartInitException {
+		JavaUI.openInEditor(findNewType(selectedTypes.get(0)));
+	}
+
+	private static void performRefactoring(CreateNewTopLevelSuperClassRefactoring refactoring, IProgressMonitor monitor) throws CoreException {
+		PerformRefactoringOperation operation= new PerformRefactoringOperation(refactoring, CheckConditionsOperation.INITIAL_CONDITONS);
+		operation.run(monitor);
+	}
+
+	private static RefactoringStatus checkRefactoring(List<IType> selectedTypes, CreateNewTopLevelSuperClassRefactoring refactoring, IProgressMonitor monitor) throws CoreException {
+		RefactoringStatus status= new RefactoringStatus();
+		status.merge(refactoring.checkInitialConditions(monitor));
+		status.merge(refactoring.checkFinalConditions(monitor));
+		status.merge(areSelectedTypesCompatible(refactoring, selectedTypes, monitor));
+		return status;
+	}
+
+	private static CreateNewTopLevelSuperClassRefactoring createRefactoring(List<IType> selectedTypes) throws CoreException {
+		CreateNewTopLevelSuperClassDescriptor descriptor= createRefactoringDescriptor(selectedTypes);
+		CreateNewTopLevelSuperClassRefactoring refactoring= (CreateNewTopLevelSuperClassRefactoring)descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
+		return refactoring;
+	}
+
+	private static List<IType> getSelectedTypes(IEditorPart editorPart, ISelection selection) throws InvalidSelectionException, JavaModelException {
+		List<IType> selectedTypes;
+		if (selection instanceof ITextSelection) {
+			selectedTypes= getSelectedTypes(editorPart, (ITextSelection)selection);
+		} else if (selection instanceof IStructuredSelection) {
+			selectedTypes= getSelectedTypes((IStructuredSelection)selection);
+		} else {
+			throw new InvalidSelectionException("Unexpected kind of selection");
+		}
+		return selectedTypes;
+	}
+
+	private static RefactoringStatus areSelectedTypesCompatible(CreateNewTopLevelSuperClassRefactoring refactoring, List<IType> selectedTypes, IProgressMonitor monitor) {
+		RefactoringStatus status= new RefactoringStatus();
+		List<IType> possibleTypes= Arrays.asList(refactoring.getCandidateTypes(monitor));
+		if (!fullyQualifiedName(possibleTypes).containsAll(fullyQualifiedName(selectedTypes))) {
+			status.merge(RefactoringStatus.createErrorStatus("The selected types belong to different class hierarchies."));
+		}
+		return status;
+	}
+
 	private boolean choseToProceed(Shell shell, RefactoringStatus status) {
 		return new RefactoringStatusDialog(status, shell, "Refactoring Problems", false).open() == Window.OK;
 	}
 
 	// See http://publib.boulder.ibm.com/infocenter/iadthelp/v6r0/index.jsp?topic=/org.eclipse.jdt.doc.isv/guide/jdt_api_open_editor.htm
-	private IType findNewType(IType firstSelectedType) {
+	private static IType findNewType(IType firstSelectedType) {
 		return firstSelectedType.getPackageFragment().getCompilationUnit("Super" + firstSelectedType.getElementName() + JavaModelUtil.DEFAULT_CU_SUFFIX).findPrimaryType();
 	}
 
@@ -157,7 +187,7 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		throw new InvalidSelectionException(selectionElement + " is not a Java type.");
 	}
 
-	private String typeNames(List<IType> types) {
+	private static String typeNames(List<IType> types) {
 		StringBuilder sb= new StringBuilder();
 		for (Iterator<IType> iterator= types.iterator(); iterator.hasNext();) {
 			IType type= (IType)iterator.next();
@@ -169,7 +199,7 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		return sb.toString();
 	}
 
-	private CreateNewTopLevelSuperClassDescriptor createRefactoringDescriptor(List<IType> types) {
+	private static CreateNewTopLevelSuperClassDescriptor createRefactoringDescriptor(List<IType> types) {
 		IJavaProject javaProject= types.get(0).getJavaProject();
 		String description= MessageFormat.format(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_description, typeNames(types));
 		Map<String, String> arguments= new HashMap<String, String>();
