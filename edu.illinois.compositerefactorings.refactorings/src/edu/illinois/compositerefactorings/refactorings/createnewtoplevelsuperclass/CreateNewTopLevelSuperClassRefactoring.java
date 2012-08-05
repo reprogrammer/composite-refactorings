@@ -14,6 +14,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractSuperclassDescriptor;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
@@ -104,6 +105,10 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 		CreateNewTopLevelSuperClassDescriptor newDescriptor= new CreateNewTopLevelSuperClassDescriptor(extractSuperTypeDescriptor.getProject(), extractSuperTypeDescriptor.getDescription(),
 				extractSuperTypeDescriptor.getComment(), arguments, extractSuperTypeDescriptor.getFlags());
 		return new DynamicValidationRefactoringChange(newDescriptor, getName(), ChangeUtils.createChangesWithNullParents(extractSuperTypeChange.getChildren()));
+	}
+
+	public IType[] getCandidateTypes(IProgressMonitor monitor) {
+		return fExtractSuperTypeProcessor.getCandidateTypes(null, monitor);
 	}
 
 }
