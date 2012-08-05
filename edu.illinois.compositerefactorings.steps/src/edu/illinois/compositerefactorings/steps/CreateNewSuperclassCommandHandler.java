@@ -12,11 +12,9 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -65,13 +63,13 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 
 	}
 
-	private static Set<String> fullyQualifiedName(List<IType> types) {
-		Set<String> fullyQualifiedNames= new HashSet<String>();
-		for (IType type : types) {
-			fullyQualifiedNames.add(type.getFullyQualifiedName());
-		}
-		return fullyQualifiedNames;
-	}
+//	private static Set<String> fullyQualifiedName(List<IType> types) {
+//		Set<String> fullyQualifiedNames= new HashSet<String>();
+//		for (IType type : types) {
+//			fullyQualifiedNames.add(type.getFullyQualifiedName());
+//		}
+//		return fullyQualifiedNames;
+//	}
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
