@@ -111,7 +111,8 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		RefactoringStatus status= new RefactoringStatus();
 		status.merge(refactoring.checkInitialConditions(monitor));
 		status.merge(refactoring.checkFinalConditions(monitor));
-		status.merge(areSelectedTypesCompatible(refactoring, selectedTypes, monitor));
+//		I (Mohsen) disabled the following check because it is too expensive.
+//		status.merge(areSelectedTypesCompatible(refactoring, selectedTypes, monitor));
 		return status;
 	}
 
@@ -133,14 +134,14 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		return selectedTypes;
 	}
 
-	private static RefactoringStatus areSelectedTypesCompatible(CreateNewTopLevelSuperClassRefactoring refactoring, List<IType> selectedTypes, IProgressMonitor monitor) {
-		RefactoringStatus status= new RefactoringStatus();
-		List<IType> possibleTypes= Arrays.asList(refactoring.getCandidateTypes(monitor));
-		if (!fullyQualifiedName(possibleTypes).containsAll(fullyQualifiedName(selectedTypes))) {
-			status.merge(RefactoringStatus.createErrorStatus("The selected types belong to different class hierarchies."));
-		}
-		return status;
-	}
+//	private static RefactoringStatus areSelectedTypesCompatible(CreateNewTopLevelSuperClassRefactoring refactoring, List<IType> selectedTypes, IProgressMonitor monitor) {
+//		RefactoringStatus status= new RefactoringStatus();
+//		List<IType> possibleTypes= Arrays.asList(refactoring.getCandidateTypes(monitor));
+//		if (!fullyQualifiedName(possibleTypes).containsAll(fullyQualifiedName(selectedTypes))) {
+//			status.merge(RefactoringStatus.createErrorStatus("The selected types belong to different class hierarchies."));
+//		}
+//		return status;
+//	}
 
 	private boolean choseToProceed(Shell shell, RefactoringStatus status) {
 		return new RefactoringStatusDialog(status, shell, "Refactoring Problems", false).open() == Window.OK;
