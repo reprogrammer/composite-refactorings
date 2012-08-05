@@ -15,25 +15,79 @@
   -->
   <extension point="org.eclipse.ui.menus">
     <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-      <menu label="Quick Refactor" id="edu.illinois.compositerefactorings.steps.quickRefactor">
+      <menu label="Quick Refactor" id="edu.illinois.compositerefactorings.steps.quickRefactorMenu">
         <command
           commandId="edu.illinois.compositerefactorings.steps.createNewSuperclassCommandID"
           label="Create New Superclass">
+          <visibleWhen checkEnabled="false">
+            <reference definitionId="edu.illinois.compositerefactorings.steps.isJavaTypeSelectedID"/>
+          </visibleWhen>
         </command>
       </menu>
     </menuContribution>
   </extension>
+
+  <!-- See org.eclipse.ui.menus.MenuUtil -->
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+      <menu label="Quick Refactor" id="edu.illinois.compositerefactorings.steps.quickRefactorPopup">
+        <command
+          commandId="edu.illinois.compositerefactorings.steps.createNewSuperclassCommandID"
+          label="Create New Superclass">
+          <visibleWhen checkEnabled="false">
+            <reference definitionId="edu.illinois.compositerefactorings.steps.isJavaTypeSelectedID"/>
+          </visibleWhen>
+        </command>
+      </menu>
+    </menuContribution>
+  </extension>
+
   <extension point="org.eclipse.ui.commands">
     <command
       id="edu.illinois.compositerefactorings.steps.createNewSuperclassCommandID"
       name="Create New Superclass Command Name">
     </command>
   </extension>
+
   <extension point="org.eclipse.ui.handlers">
     <handler
       class="edu.illinois.compositerefactorings.steps.CreateNewSuperclassCommandHandler"
       commandId="edu.illinois.compositerefactorings.steps.createNewSuperclassCommandID">
     </handler>
+  </extension>
+
+  <!-- http://wiki.eclipse.org/Platform_Expression_Framework -->
+  <extension point="org.eclipse.core.expressions.propertyTesters">
+    <propertyTester
+      class="edu.illinois.compositerefactorings.steps.JavaTypeSelectionPropertyTester"
+      id="edu.illinois.compositerefactorings.steps.javaTypeSelectionPropertyTesterID"
+      namespace="edu.illinois.compositerefactorings.steps"
+      properties="isJavaTypeSelected"
+      type="org.eclipse.ui.IEditorPart">
+    </propertyTester>
+  </extension>
+  
+  <!--
+    http://www.vogella.com/articles/EclipsePlugIn/article.html#contextmenu_restrict
+    http://wiki.eclipse.org/Command_Core_Expressions
+    http://hermanlintvelt.blogspot.com/2009/06/eclipse-rcp-commands-part-3-visiblewhen.html
+  -->  
+  <extension point="org.eclipse.core.expressions.definitions">
+    <definition id="edu.illinois.compositerefactorings.steps.isJavaTypeSelectedID">
+      <with variable="selection">
+        <iterate ifEmpty="false" operator="and">
+          <or>
+            <adapt type="org.eclipse.jdt.core.ICompilationUnit"></adapt>
+            <adapt type="org.eclipse.jdt.core.IType"></adapt>
+            <adapt type="org.eclipse.jface.text.ITextSelection">
+              <with variable="activeEditor">
+                <test property="edu.illinois.compositerefactorings.steps.isJavaTypeSelected"></test>
+              </with>
+            </adapt>
+          </or>
+        </iterate>
+      </with>
+    </definition>
   </extension>
 
 </plugin>

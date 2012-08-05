@@ -31,8 +31,11 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.internal.corext.refactoring.util.JavaElementUtil;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
+import org.eclipse.jdt.internal.ui.actions.SelectionConverter;
+import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
@@ -42,6 +45,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.internal.ui.refactoring.RefactoringStatusDialog;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
@@ -60,7 +64,7 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 
 	}
 
-	private Set<String> fullyQualifiedName(List<IType> types) {
+	private static Set<String> fullyQualifiedName(List<IType> types) {
 		Set<String> fullyQualifiedNames= new HashSet<String>();
 		for (IType type : types) {
 			fullyQualifiedNames.add(type.getFullyQualifiedName());
@@ -72,9 +76,17 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// See http://wiki.bioclipse.net/index.php?title=How_to_add_menus_and_actions&oldid=4857
 		Shell shell= HandlerUtil.getActiveShell(event);
+		IEditorPart editorPart= HandlerUtil.getActiveEditor(event);
 		ISelection selection= HandlerUtil.getCurrentSelection(event);
 		try {
-			List<IType> selectedTypes= getSelectedTypes((IStructuredSelection)selection);
+			List<IType> selectedTypes;
+			if (selection instanceof ITextSelection) {
+				selectedTypes= getSelectedTypes(editorPart, (ITextSelection)selection);
+			} else if (selection instanceof IStructuredSelection) {
+				selectedTypes= getSelectedTypes((IStructuredSelection)selection);
+			} else {
+				throw new InvalidSelectionException("Unexpected kind of selection");
+			}
 			IProgressMonitor monitor= new NullProgressMonitor();
 			CreateNewTopLevelSuperClassDescriptor descriptor= createRefactoringDescriptor(selectedTypes);
 			CreateNewTopLevelSuperClassRefactoring refactoring= (CreateNewTopLevelSuperClassRefactoring)descriptor.createRefactoringContext(new RefactoringStatus()).getRefactoring();
@@ -95,7 +107,7 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		} catch (CoreException e) {
 			throw new ExecutionException("Refactoring object creation failed.", e);
 		} catch (InvalidSelectionException e) {
-			MessageDialog.openError(shell, "Unavailable Refactoring", "The refactoring cannot be performed on the selected entities. Please select one or more types to create a new superclass for.");
+			MessageDialog.openError(shell, "Unavailable Refactoring", e.getMessage());
 		}
 		return null;
 	}
@@ -109,7 +121,22 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		return firstSelectedType.getPackageFragment().getCompilationUnit("Super" + firstSelectedType.getElementName() + JavaModelUtil.DEFAULT_CU_SUFFIX).findPrimaryType();
 	}
 
-	public static List<IType> getSelectedTypes(IStructuredSelection selection) throws JavaModelException, InvalidSelectionException {
+	public static List<IType> getSelectedTypes(IEditorPart editorPart, ITextSelection selection) throws InvalidSelectionException, JavaModelException {
+		CompilationUnitEditor editor;
+		if (editorPart instanceof CompilationUnitEditor) {
+			editor= (CompilationUnitEditor)editorPart;
+		} else {
+			throw new InvalidSelectionException("The active editor is not for editing Java compilation units.");
+		}
+		IType selectedType= SelectionConverter.getTypeAtOffset(editor);
+		if (selectedType != null) {
+			return Arrays.asList(selectedType);
+		} else {
+			throw new InvalidSelectionException("No Java types were selected.");
+		}
+	}
+
+	private static List<IType> getSelectedTypes(IStructuredSelection selection) throws JavaModelException, InvalidSelectionException {
 		List<IType> selectedTypes= new ArrayList<IType>();
 		for (Object selectionElement : selection.toList()) {
 			selectedTypes.add(extractTypeFromSelection(selectionElement));
@@ -127,7 +154,7 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 				return JavaElementUtil.getMainType(unit);
 			}
 		}
-		throw new InvalidSelectionException(selectionElement + " is not a type");
+		throw new InvalidSelectionException(selectionElement + " is not a Java type.");
 	}
 
 	private String typeNames(List<IType> types) {
@@ -154,4 +181,5 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 				RefactoringDescriptor.STRUCTURAL_CHANGE | RefactoringDescriptor.MULTI_CHANGE);
 		return descriptor;
 	}
+
 }
