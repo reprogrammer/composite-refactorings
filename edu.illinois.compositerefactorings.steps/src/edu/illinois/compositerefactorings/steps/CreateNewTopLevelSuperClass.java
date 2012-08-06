@@ -8,11 +8,9 @@
 
 package edu.illinois.compositerefactorings.steps;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IType;
@@ -20,14 +18,9 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
-import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
 import org.eclipse.ltk.core.refactoring.RefactoringDescriptor;
 
-import edu.illinois.compositerefactorings.messages.CompositeRefactoringsMessages;
-import edu.illinois.compositerefactorings.refactorings.createnewtoplevelsuperclass.CreateNewTopLevelSuperClassDescriptor;
-
-@SuppressWarnings("restriction")
 public class CreateNewTopLevelSuperClass extends RefactoringBasedStep {
 
 	public CreateNewTopLevelSuperClass(IInvocationContext context, ASTNode coveringNode, boolean problemsAtLocation) {
@@ -60,13 +53,7 @@ public class CreateNewTopLevelSuperClass extends RefactoringBasedStep {
 		ITypeBinding typeBinding= typeDeclaration.resolveBinding();
 		IType type= (IType)typeBinding.getJavaElement();
 		Collection<RefactoringDescriptor> descriptors= new ArrayList<RefactoringDescriptor>();
-		String description= MessageFormat.format(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_description, type.getElementName());
-		Map<String, String> arguments= new HashMap<String, String>();
-		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_INPUT, JavaRefactoringDescriptorUtil.elementToHandle(getJavaProject().getElementName(), type));
-		arguments.put(JavaRefactoringDescriptorUtil.ATTRIBUTE_NAME, "Super" + type.getElementName());
-		CreateNewTopLevelSuperClassDescriptor descriptor= new CreateNewTopLevelSuperClassDescriptor(getJavaProject().getElementName(), description, null, arguments,
-				RefactoringDescriptor.STRUCTURAL_CHANGE | RefactoringDescriptor.MULTI_CHANGE);
-		descriptors.add(descriptor);
+		descriptors.add(CreateNewSuperclassCommandHandler.createRefactoringDescriptor(Arrays.asList(type)));
 		return descriptors;
 	}
 

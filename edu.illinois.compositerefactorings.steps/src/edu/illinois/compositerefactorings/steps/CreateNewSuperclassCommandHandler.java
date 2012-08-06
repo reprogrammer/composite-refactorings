@@ -198,7 +198,7 @@ public class CreateNewSuperclassCommandHandler extends AbstractHandler {
 		return sb.toString();
 	}
 
-	private static CreateNewTopLevelSuperClassDescriptor createRefactoringDescriptor(List<IType> types) {
+	public static CreateNewTopLevelSuperClassDescriptor createRefactoringDescriptor(List<IType> types) {
 		IJavaProject javaProject= types.get(0).getJavaProject();
 		String description= MessageFormat.format(CompositeRefactoringsMessages.CreateNewTopLevelSuperClass_description, typeNames(types));
 		Map<String, String> arguments= new HashMap<String, String>();
