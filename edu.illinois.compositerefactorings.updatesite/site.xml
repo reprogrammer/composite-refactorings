@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/edu.illinois.compositerefactorings_1.0.0.201206191506.jar" id="edu.illinois.compositerefactorings" version="1.0.0.201206191506">
+   <feature url="features/edu.illinois.compositerefactorings_1.0.0.201208051844.jar" id="edu.illinois.compositerefactorings" version="1.0.0.201208051844">
       <category name="CompositeRefactorings"/>
    </feature>
    <category-def name="CompositeRefactorings" label="CompositeRefactorings"/>
