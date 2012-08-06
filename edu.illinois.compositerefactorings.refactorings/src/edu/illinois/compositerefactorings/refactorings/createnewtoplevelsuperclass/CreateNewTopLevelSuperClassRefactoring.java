@@ -8,18 +8,25 @@
 
 package edu.illinois.compositerefactorings.refactorings.createnewtoplevelsuperclass;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.WorkingCopyOwner;
 import org.eclipse.jdt.core.refactoring.descriptors.ExtractSuperclassDescriptor;
+import org.eclipse.jdt.internal.core.DefaultWorkingCopyOwner;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringArguments;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.internal.corext.refactoring.changes.DynamicValidationRefactoringChange;
 import org.eclipse.jdt.internal.corext.refactoring.structure.ExtractSupertypeProcessor;
+import org.eclipse.jdt.internal.corext.refactoring.structure.constraints.SuperTypeRefactoringProcessor;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringChangeDescriptor;
@@ -45,8 +52,50 @@ public class CreateNewTopLevelSuperClassRefactoring extends Refactoring {
 
 	private ExtractSupertypeProcessor fExtractSuperTypeProcessor;
 
+	private static WorkingCopyOwner setOwner(SuperTypeRefactoringProcessor processor, WorkingCopyOwner owner) throws NoSuchFieldException, SecurityException, IllegalArgumentException,
+			IllegalAccessException {
+		Field ownerField= SuperTypeRefactoringProcessor.class.getDeclaredField("fOwner");
+		ownerField.setAccessible(true);
+		WorkingCopyOwner oldOwner= (WorkingCopyOwner)ownerField.get(processor);
+		ownerField.set(processor, owner);
+		ownerField.setAccessible(false);
+		return oldOwner;
+	}
+
+	private static RefactoringStatus callInitialize(ExtractSupertypeProcessor processor, JavaRefactoringArguments arguments) throws NoSuchMethodException, SecurityException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException {
+		Method method= ExtractSupertypeProcessor.class.getDeclaredMethod("initialize", JavaRefactoringArguments.class);
+		method.setAccessible(true);
+		RefactoringStatus status= (RefactoringStatus)method.invoke(processor, arguments);
+		method.setAccessible(false);
+		return status;
+	}
+
+	private static RefactoringStatus callInitializeWithDefaultWorkingCopyOwner(ExtractSupertypeProcessor processor, JavaRefactoringArguments arguments) {
+		WorkingCopyOwner originalOwner;
+		try {
+			originalOwner= setOwner(processor, DefaultWorkingCopyOwner.PRIMARY);
+			RefactoringStatus status= callInitialize(processor, arguments);
+			setOwner(processor, originalOwner);
+			return status;
+		} catch (NoSuchFieldException e) {
+			throw new RuntimeException(e);
+		} catch (SecurityException e) {
+			throw new RuntimeException(e);
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public CreateNewTopLevelSuperClassRefactoring(JavaRefactoringArguments arguments, RefactoringStatus status) {
-		fExtractSuperTypeProcessor= new ExtractSupertypeProcessor(createArgumentsForExtractSupertype(arguments), status);
+		fExtractSuperTypeProcessor= new ExtractSupertypeProcessor((IMember[])null, null);
+		status.merge(callInitializeWithDefaultWorkingCopyOwner(fExtractSuperTypeProcessor, createArgumentsForExtractSupertype(arguments)));
 	}
 
 	private JavaRefactoringArguments createArgumentsForExtractSupertype(JavaRefactoringArguments arguments) {
