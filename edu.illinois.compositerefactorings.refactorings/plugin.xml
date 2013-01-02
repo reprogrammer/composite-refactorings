@@ -12,6 +12,10 @@
             id="edu.illinois.compositerefactorings.createnewtoplevelsuperclass">
       </contribution>
       <contribution
+            class="edu.illinois.compositerefactorings.refactorings.createnewtoplevelinterface.CreateNewTopLevelInterfaceRefactoringContribution"
+            id="edu.illinois.compositerefactorings.createnewtoplevelinterface">
+      </contribution>
+      <contribution
             class="edu.illinois.compositerefactorings.refactorings.usesupertypeinvariabledeclarations.UseSuperTypeInVariableDeclarationsRefactoringContribution"
             id="edu.illinois.compositerefactorings.usesupertypeinvariabledeclarations">
       </contribution>

@@ -30,6 +30,12 @@ public class CompositeRefactoringsMessages extends NLS {
 
 	public static String CreateNewTopLevelSuperClass_no_type;
 
+	public static String CreateNewTopLevelInterface_name;
+
+	public static String CreateNewTopLevelInterface_no_type;
+
+	public static String CreateNewTopLevelInterface_no_interface_name;
+
 	public static String MoveToImmediateSuperclass_description;
 
 	public static String MoveTypeToNewFile_description;
