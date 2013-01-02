@@ -139,4 +139,8 @@ public class CreateNewTopLevelInterfaceTests extends RefactoringTest {
 		validatePassingTest("C", Arrays.asList("D"), "I");
 	}
 
+	public void test4() throws Exception {
+		validatePassingTest("C", Arrays.asList("I"), "J");
+	}
+
 }
