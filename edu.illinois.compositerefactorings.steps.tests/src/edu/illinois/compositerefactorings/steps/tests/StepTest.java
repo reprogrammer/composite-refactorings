@@ -81,30 +81,30 @@ public class StepTest {
 	//@Test
 	public void testCreateNewSuperclass1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("package test1;\n");
-		buf.append("public class C {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("package test1;\n");
+		sb.append("public class C {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("C");
+		int offset= sb.toString().indexOf("C");
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 
 		StepTestUtilities.assertCorrectLabels(proposals);
 
-		buf= new StringBuffer();
-		buf.append("package test1;\n");
-		buf.append("public class C extends SuperC {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class SuperC {\n");
-		buf.append("}\n");
-		String expected1= buf.toString();
+		sb= new StringBuilder();
+		sb.append("package test1;\n");
+		sb.append("public class C extends SuperC {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class SuperC {\n");
+		sb.append("}\n");
+		String expected1= sb.toString();
 
 		StepTestUtilities.assertExpectedExistInProposals(proposals, new String[] { expected1 });
 	}
@@ -112,15 +112,15 @@ public class StepTest {
 	@Test
 	public void testCreateNewTopLevelSuperclass1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("package test1;\n");
-		buf.append("public class C {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("package test1;\n");
+		sb.append("public class C {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("C");
+		int offset= sb.toString().indexOf("C");
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 
@@ -131,18 +131,18 @@ public class StepTest {
 	@Test
 	public void testMoveToImmediateSuperclass1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("package test1;\n");
-		buf.append("public class C extends D {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class D {\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("package test1;\n");
+		sb.append("public class C extends D {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class D {\n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("m()");
+		int offset= sb.toString().indexOf("m()");
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 
@@ -153,18 +153,18 @@ public class StepTest {
 	@Test
 	public void testMoveTypeToNewFile1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("package test1;\n");
-		buf.append("public class C extends D {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class D {\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("package test1;\n");
+		sb.append("public class C extends D {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class D {\n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("class D") + "class ".length();
+		int offset= sb.toString().indexOf("class D") + "class ".length();
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 
@@ -175,26 +175,26 @@ public class StepTest {
 	//@Test
 	public void testReplaceTypeBySupertype1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("public class C {\n");
-		buf.append("    public void m(E o) {\n");
-		buf.append("        if (o instanceof E) {\n");
-		buf.append("            o.m();\n");
-		buf.append("        }\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class D {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class E extends D {\n");
-		buf.append("}\n");
-		buf.append("\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("public class C {\n");
+		sb.append("    public void m(E o) {\n");
+		sb.append("        if (o instanceof E) {\n");
+		sb.append("            o.m();\n");
+		sb.append("        }\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class D {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class E extends D {\n");
+		sb.append("}\n");
+		sb.append("\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("class E") + "class ".length();
+		int offset= sb.toString().indexOf("class E") + "class ".length();
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
@@ -206,29 +206,29 @@ public class StepTest {
 	//@Test
 	public void testReplaceTypeBySupertype2() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("public class C {\n");
-		buf.append("    public void m(F o) {\n");
-		buf.append("        if (o instanceof F) {\n");
-		buf.append("            o.m();\n");
-		buf.append("        }\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class D {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class E extends D {\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class F extends E {\n");
-		buf.append("\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("public class C {\n");
+		sb.append("    public void m(F o) {\n");
+		sb.append("        if (o instanceof F) {\n");
+		sb.append("            o.m();\n");
+		sb.append("        }\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class D {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class E extends D {\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class F extends E {\n");
+		sb.append("\n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("class F") + "class ".length();
+		int offset= sb.toString().indexOf("class F") + "class ".length();
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
@@ -244,29 +244,29 @@ public class StepTest {
 	//@Test
 	public void testReplaceTypeBySupertype3() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("interface I {\n");
-		buf.append("\n");
-		buf.append("    void m();\n");
-		buf.append("\n");
-		buf.append("}\n");
-		buf.append("\n");
-		buf.append("class C implements I {\n");
-		buf.append("\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("\n");
-		buf.append("    void test() {\n");
-		buf.append("        C o = new C();\n");
-		buf.append("        if (o instanceof C) {\n");
-		buf.append("            ((C) o).m();\n");
-		buf.append("        }\n");
-		buf.append("    }\n");
-		buf.append("    \n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("interface I {\n");
+		sb.append("\n");
+		sb.append("    void m();\n");
+		sb.append("\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class C implements I {\n");
+		sb.append("\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("\n");
+		sb.append("    void test() {\n");
+		sb.append("        C o = new C();\n");
+		sb.append("        if (o instanceof C) {\n");
+		sb.append("            ((C) o).m();\n");
+		sb.append("        }\n");
+		sb.append("    }\n");
+		sb.append("    \n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("class C") + "class ".length();
+		int offset= sb.toString().indexOf("class C") + "class ".length();
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
@@ -280,21 +280,21 @@ public class StepTest {
 	@Test
 	public void testAddMethodParameterForExpression1() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("public class C {\n");
-		buf.append("    \n");
-		buf.append("    int m1() {\n");
-		buf.append("        return m2();\n");
-		buf.append("    }\n");
-		buf.append("    \n");
-		buf.append("    int m2() {\n");
-		buf.append("        return 1 + 2;\n");
-		buf.append("    }\n");
-		buf.append("\n");
-		buf.append("}\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("public class C {\n");
+		sb.append("    \n");
+		sb.append("    int m1() {\n");
+		sb.append("        return m2();\n");
+		sb.append("    }\n");
+		sb.append("    \n");
+		sb.append("    int m2() {\n");
+		sb.append("        return 1 + 2;\n");
+		sb.append("    }\n");
+		sb.append("\n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("return 1") + "return ".length();
+		int offset= sb.toString().indexOf("return 1") + "return ".length();
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
@@ -305,16 +305,16 @@ public class StepTest {
 	@Test
 	public void testCreateAndImplementNewInterface() throws Exception {
 		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
-		StringBuffer buf= new StringBuffer();
-		buf.append("package test1;\n");
-		buf.append("public class C {\n");
-		buf.append("    public void m() {\n");
-		buf.append("    }\n");
-		buf.append("}\n");
-		buf.append("\n");
-		ICompilationUnit cu= pack1.createCompilationUnit("C.java", buf.toString(), false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("package test1;\n");
+		sb.append("public class C {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), false, null);
 
-		int offset= buf.toString().indexOf("C {");
+		int offset= sb.toString().indexOf("C {");
 		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
 		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
 
