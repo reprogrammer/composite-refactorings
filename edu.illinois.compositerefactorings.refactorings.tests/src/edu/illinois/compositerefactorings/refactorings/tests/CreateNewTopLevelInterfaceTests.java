@@ -8,8 +8,6 @@
 
 package edu.illinois.compositerefactorings.refactorings.tests;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,19 +17,11 @@ import java.util.Map;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.internal.corext.codemanipulation.StubUtility;
-import org.eclipse.jdt.internal.corext.template.java.CodeTemplateContextType;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
-import org.eclipse.jdt.ui.tests.refactoring.RefactoringTest;
 import org.eclipse.jdt.ui.tests.refactoring.RefactoringTestSetup;
-import org.eclipse.ltk.core.refactoring.Refactoring;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 import edu.illinois.compositerefactorings.refactorings.createnewtoplevelinterface.CreateNewTopLevelInterfaceDescriptor;
 
@@ -58,69 +48,20 @@ public class CreateNewTopLevelInterfaceTests extends RefactoringTest {
 		return REFACTORING_PATH;
 	}
 
-	protected void setUp() throws Exception {
-		super.setUp();
-		// TODO: Removed code duplication.
-		StubUtility.setCodeTemplate(CodeTemplateContextType.NEWTYPE_ID,
-				"${package_declaration}" +
-						System.getProperty("line.separator", "\n") +
-						"${" + CodeTemplateContextType.TYPE_COMMENT + "}" +
-						System.getProperty("line.separator", "\n") +
-						"${type_declaration}", null);
-		StubUtility.setCodeTemplate(CodeTemplateContextType.TYPECOMMENT_ID, "", null);
-	}
-
-	// TODO: Removed code duplication.
-	@Override
-	public String getFileContents(String fileName) throws IOException {
-		return getContents(getFileInputStream(fileName));
-	}
-
-	// TODO: Removed code duplication.
-	public static InputStream getFileInputStream(String fileName) throws IOException {
-		IPath path= new Path("resources").append(fileName);
-		try {
-			return Activator.getDefault().getFileInPlugin(path).toURI().toURL().openStream();
-		} catch (CoreException e) {
-			throw new IOException(e);
-		}
-	}
-
-	// TODO: Removed code duplication.
-	private IType getClassFromTestFile(IPackageFragment pack, String className) throws Exception {
-		return getType(createCUfromTestFile(pack, className), className);
-	}
-
 	private void validatePassingTest(String subclassName, List<String> otherClassNames, String newInterfaceName) throws Exception {
 		final Map<String, ICompilationUnit> units= new HashMap<String, ICompilationUnit>();
 		IType subtype= getClassFromTestFile(getPackageP(), subclassName);
 		units.put(subclassName, subtype.getCompilationUnit());
-
-		//TODO: Remove the following duplicated code.
 		IPackageFragment packageFragment= subtype.getPackageFragment();
-		for (String className : otherClassNames) {
-			units.put(className, createCUfromTestFile(packageFragment, className));
-		}
+		units.putAll(getCompilationUnits(packageFragment, otherClassNames));
 
 		final CreateNewTopLevelInterfaceDescriptor descriptor= new CreateNewTopLevelInterfaceDescriptor();
 		descriptor.setNewInterfaceName(newInterfaceName);
 		descriptor.setType(subtype);
-		//TODO: Remove the following duplicated code.
-		final RefactoringStatus status= new RefactoringStatus();
-		final Refactoring refactoring= descriptor.createRefactoring(status);
-		assertTrue("status should be ok", status.isOK());
-		assertNotNull("refactoring should not be null", refactoring);
-		assertEquals("was supposed to pass", null, performRefactoring(refactoring));
+		createPerformCheckRefactoring(descriptor);
 
 		units.put(newInterfaceName, getPackageP().getCompilationUnit(newInterfaceName + JavaModelUtil.DEFAULT_CU_SUFFIX));
-		for (Map.Entry<String, ICompilationUnit> entry : units.entrySet()) {
-			String cuName= entry.getKey();
-			ICompilationUnit unit= entry.getValue();
-			String expected= getFileContents(getOutputTestFileName(cuName));
-			String actual= unit.getSource();
-			String message= "incorrect changes in " + unit.getElementName();
-			assertEqualLines(message, expected, actual);
-		}
+		compareCompilationUnits(units);
 	}
 
 	public void test0() throws Exception {

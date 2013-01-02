@@ -1,5 +1,4 @@
 package p;
-/** typecomment template*/
 public class F extends E {
 	/**
 	 * 
