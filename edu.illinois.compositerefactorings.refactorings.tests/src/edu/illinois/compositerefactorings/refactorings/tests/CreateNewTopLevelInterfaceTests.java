@@ -10,7 +10,10 @@ package edu.illinois.compositerefactorings.refactorings.tests;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import junit.framework.Test;
@@ -88,10 +91,17 @@ public class CreateNewTopLevelInterfaceTests extends RefactoringTest {
 		return getType(createCUfromTestFile(pack, className), className);
 	}
 
-	private void validatePassingTest(String subclassName, String newInterfaceName) throws Exception {
+	private void validatePassingTest(String subclassName, List<String> otherClassNames, String newInterfaceName) throws Exception {
 		final Map<String, ICompilationUnit> units= new HashMap<String, ICompilationUnit>();
 		IType subtype= getClassFromTestFile(getPackageP(), subclassName);
 		units.put(subclassName, subtype.getCompilationUnit());
+
+		//TODO: Remove the following duplicated code.
+		IPackageFragment packageFragment= subtype.getPackageFragment();
+		for (String className : otherClassNames) {
+			units.put(className, createCUfromTestFile(packageFragment, className));
+		}
+
 		final CreateNewTopLevelInterfaceDescriptor descriptor= new CreateNewTopLevelInterfaceDescriptor();
 		descriptor.setNewInterfaceName(newInterfaceName);
 		descriptor.setType(subtype);
@@ -114,7 +124,11 @@ public class CreateNewTopLevelInterfaceTests extends RefactoringTest {
 	}
 
 	public void test0() throws Exception {
-		validatePassingTest("C", "I");
+		validatePassingTest("C", new ArrayList<String>(), "I");
+	}
+
+	public void test1() throws Exception {
+		validatePassingTest("C", Arrays.asList("D"), "I");
 	}
 
 }
