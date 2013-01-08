@@ -38,6 +38,16 @@ public class CompositeRefactoringsMessages extends NLS {
 
 	public static String CreateNewTopLevelInterface_no_interface_name;
 
+	public static String CopyMemberToSubstype_description;
+
+	public static String CopyMemberToSubstype_name;
+
+	public static String CopyMemberToSubstype_no_member;
+
+	public static String CopyMemberToSubstype_no_supertype;
+
+	public static String CopyMemberToSubstype_no_subtype;
+
 	public static String MoveToImmediateSuperclass_description;
 
 	public static String MoveTypeToNewFile_description;

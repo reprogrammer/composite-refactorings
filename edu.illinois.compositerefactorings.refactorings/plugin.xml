@@ -19,6 +19,9 @@
             class="edu.illinois.compositerefactorings.refactorings.usesupertypeinvariabledeclarations.UseSuperTypeInVariableDeclarationsRefactoringContribution"
             id="edu.illinois.compositerefactorings.usesupertypeinvariabledeclarations">
       </contribution>
+      <contribution
+            class="edu.illinois.compositerefactorings.refactorings.copymembertosubtype.CopyMemberToSubtypeRefactoringContribution"
+            id="edu.illinois.compositerefactorings.copymembertosubtype">
+      </contribution>
    </extension>
-
 </plugin>

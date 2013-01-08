@@ -322,4 +322,26 @@ public class StepTest {
 		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.CreateNewTopLevelInterface_description, "C"));
 	}
 
+	@Test
+	public void testCopyMemberToSubtype() throws Exception {
+		IPackageFragment pack1= fSourceFolder.createPackageFragment("test1", false, null);
+		StringBuilder sb= new StringBuilder();
+		sb.append("package test1;\n");
+		sb.append("class C {\n");
+		sb.append("    public void m() {\n");
+		sb.append("    }\n");
+		sb.append("}\n");
+		sb.append("\n");
+		sb.append("class D extends C {\n");
+		sb.append("}\n");
+		ICompilationUnit cu= pack1.createCompilationUnit("C.java", sb.toString(), true, null);
+
+		int offset= sb.toString().indexOf("m()");
+		AssistContext context= StepTestUtilities.getCorrectionContext(cu, offset, 0);
+		List<?> proposals= StepTestUtilities.doCollectAssists(context, false);
+
+		StepTestUtilities.assertCorrectLabels(proposals);
+		StepTestUtilities.assertProposalExists(proposals, MessageFormat.format(CompositeRefactoringsMessages.CopyMemberToSubstype_description, "m", "D"));
+	}
+
 }

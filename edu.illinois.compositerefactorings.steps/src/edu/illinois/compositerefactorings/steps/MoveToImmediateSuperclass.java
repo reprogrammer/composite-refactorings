@@ -22,9 +22,6 @@ import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.FieldDeclaration;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.refactoring.descriptors.PullUpDescriptor;
 import org.eclipse.jdt.internal.corext.refactoring.JavaRefactoringDescriptorUtil;
 import org.eclipse.jdt.ui.text.java.IInvocationContext;
@@ -41,58 +38,7 @@ public class MoveToImmediateSuperclass extends RefactoringBasedStep {
 
 	@Override
 	protected Collection<? extends IJavaElement> getInputs() {
-		Collection<IMember> members= new ArrayList<IMember>();
-		IMember member= null;
-
-		IMember fieldMember= null;
-
-		FieldDeclaration fieldDeclaration= null;
-
-		if (context.getCoveredNode() instanceof FieldDeclaration) {
-			fieldDeclaration= (FieldDeclaration)context.getCoveredNode();
-		} else if (coveringNode instanceof FieldDeclaration) {
-			fieldDeclaration= (FieldDeclaration)coveringNode;
-		} else if (coveringNode.getParent() instanceof FieldDeclaration) {
-			fieldDeclaration= (FieldDeclaration)coveringNode.getParent();
-		} else if (coveringNode.getParent() != null && coveringNode.getParent().getParent() instanceof FieldDeclaration) {
-			fieldDeclaration= (FieldDeclaration)coveringNode.getParent().getParent();
-		}
-
-		if (fieldDeclaration != null) {
-			// See http://stackoverflow.com/a/11210998/130224
-			VariableDeclarationFragment variableDeclarationFragment= (VariableDeclarationFragment)fieldDeclaration.fragments().get(0);
-			fieldMember= (IMember)variableDeclarationFragment.resolveBinding().getJavaElement();
-		}
-
-		IMember methodMember= null;
-
-		MethodDeclaration methodDeclaration= null;
-
-		if (context.getCoveredNode() instanceof MethodDeclaration) {
-			methodDeclaration= (MethodDeclaration)context.getCoveredNode();
-		} else if (coveringNode instanceof MethodDeclaration) {
-			methodDeclaration= (MethodDeclaration)coveringNode;
-		} else if (coveringNode.getParent() instanceof MethodDeclaration) {
-			methodDeclaration= (MethodDeclaration)coveringNode.getParent();
-		}
-
-		if (methodDeclaration != null) {
-			methodMember= (IMember)methodDeclaration.resolveBinding().getJavaElement();
-		}
-
-		if (fieldMember != null) {
-			member= fieldMember;
-		}
-
-		if (methodMember != null) {
-			member= methodMember;
-		}
-
-		if (member != null && member.getDeclaringType() != null) {
-			members.add(member);
-		}
-
-		return members;
+		return SelectionUtils.getSelectionMemberDeclarations(context, coveringNode);
 	}
 
 	@Override

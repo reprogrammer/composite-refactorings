@@ -37,6 +37,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 
 	private static boolean isCreateNewTopLevelInterfaceEnabled= true;
 
+	private static boolean isCopyMemberToSubtypeEnabled= true;
+
 	@Override
 	public boolean hasAssists(IInvocationContext context) throws CoreException {
 		ASTNode coveringNode= context.getCoveringNode();
@@ -48,7 +50,8 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 					(isReplaceTypeBySupertypeInInstanceOfEnabled && new ReplaceTypeBySupertypeInInstanceOf(context, coveringNode, false).hasInputs()) ||
 					(isAddMethodParameterForExpressionEnabled && new AddMethodParameterForExpression(context, coveringNode, false).hasInputs()) ||
 					(isCreateNewTopLevelSuperClassEnabled && new CreateNewTopLevelSuperClass(context, coveringNode, false).hasInputs())
-					|| (isCreateNewTopLevelInterfaceEnabled && new CreateNewTopLevelInterface(context, coveringNode, false).hasInputs());
+					|| (isCreateNewTopLevelInterfaceEnabled && new CreateNewTopLevelInterface(context, coveringNode, false).hasInputs())
+					|| (isCopyMemberToSubtypeEnabled && new CopyMemberToSubtype(context, coveringNode, false).hasInputs());
 		}
 		return false;
 	}
@@ -81,6 +84,9 @@ public class CompositeRefactoringsQuickAssistProcessor implements IQuickAssistPr
 			}
 			if (isCreateNewTopLevelInterfaceEnabled) {
 				proposals.addAll(new CreateNewTopLevelInterface(context, coveringNode, false).getProposals());
+			}
+			if (isCopyMemberToSubtypeEnabled) {
+				proposals.addAll(new CopyMemberToSubtype(context, coveringNode, false).getProposals());
 			}
 			return proposals.toArray(new IJavaCompletionProposal[proposals.size()]);
 		}
