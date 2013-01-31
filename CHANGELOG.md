@@ -1,3 +1,8 @@
+v1.0.0.201301311730 (issue #22)
+===============================
+- Added a Quick Assist for extracting a new empty interface from an existing class (issue #20).
+- Added a Quick Assist for copying a member of a type to an immediate subtype (issue #21).
+
 v1.0.0.201208051844 (issue #18)
 ===============================
 - Added a Quick Assist action for "Create new superclass in same file" but eventually disabled it because of its bugs (issues #9, #11, #13).
